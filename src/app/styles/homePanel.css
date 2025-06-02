@@ -1,0 +1,4 @@
+.home-panel {
+    border-radius: var(--mdui-shape-corner-medium);
+    border: 1px solid black;
+}
