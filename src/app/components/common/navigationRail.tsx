@@ -1,43 +1,32 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import 'mdui/components/navigation-rail.js';
-import 'mdui/components/navigation-rail-item.js';
-import 'mdui/components/fab.js';
-import 'mdui/components/icon.js';
+import React from "react";
+import dynamic from "next/dynamic";
 
 const NavigationRail: React.FC = () => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    // Ensure MDUI components are initialized
-    const initMDUI = async () => {
-      await Promise.all([
-        import('mdui/components/navigation-rail.js'),
-        import('mdui/components/navigation-rail-item.js'),
-        import('mdui/components/fab.js'),
-        import('mdui/components/icon.js')
-      ]);
-      setIsClient(true);
-    };
-    
-    initMDUI();
-  }, []);
-
-  if (!isClient) {
-    return null;
-  }
-
   return (
-    <mdui-navigation-rail contained placement="left" alignment="start" value="home" className="py-4">
-      <mdui-fab icon="add--outlined" name="add" slot="top" variant="primary"></mdui-fab>
-      
-      <mdui-navigation-rail-item icon="home--outlined" active-icon="home" value="home">Home</mdui-navigation-rail-item>
-      <mdui-navigation-rail-item icon="notifications--outlined" active-icon="notifications--filled" value="notifications">Notifications</mdui-navigation-rail-item>
-      <mdui-navigation-rail-item icon="bookmark_border" active-icon="bookmark--filled" value="saved">Saved</mdui-navigation-rail-item>
-      <mdui-navigation-rail-item icon="folder--outlined" active-icon="folder" value="feeds">My Feeds</mdui-navigation-rail-item>
-    </mdui-navigation-rail>
+    <nav className="left">
+      <button className="square round extra fill" data-ui="#post-form-dialog">
+        <i>add</i>
+      </button>
+      <a>
+        <i>home</i>
+        <span>Home</span>
+      </a>
+      <a>
+        <i>notifications</i>
+        <div className="badge">1</div>
+        <span>Notifs</span>
+      </a>
+      <a>
+        <i>bookmark</i>
+        <span>Saved</span>
+      </a>
+      <a>
+        <i>folder</i>
+        <span>My Feeds</span>
+      </a>
+    </nav>
   );
 };
 

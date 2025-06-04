@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@iconify/react": "^6.0.0",
-    "@mdui/icons": "^1.0.3",
-    "mdui": "^2.1.4",
+    "beercss": "^3.11.11",
+    "hashtag-regex": "^2.2.0",
+    "material-dynamic-colors": "^1.1.2",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.8",
+    "@types/hashtag-regex": "^2.0.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
