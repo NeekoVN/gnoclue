@@ -9,7 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "beercss": "^3.11.11",
+    "axios": "^1.10.0",
+    "beercss": "^3.11.18",
     "hashtag-regex": "^2.2.0",
     "material-dynamic-colors": "^1.1.2",
     "next": "15.3.3",

@@ -8,6 +8,7 @@ import NavigationRail from "./components/common/navigationRail";
 import TopAppBar from "./components/common/topAppBar";
 import PostFormDialog from "./components/postFormDialog";
 import { usePathname } from "next/navigation";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export default function RootLayout({
   children,
@@ -17,28 +18,23 @@ export default function RootLayout({
   const pathname = usePathname();
   const asAuthPage = pathname === "/signin" || pathname === "/signup";
 
-  // If it's an auth page, render without navigation
-  if (asAuthPage) {
-    return (
-      <html lang="en" className="h-full w-full">
-        <head></head>
-        <body className="m-0 p-0 h-full w-full light">{children}</body>
-      </html>
-    );
-  }
-
   return (
     <html lang="en" className="h-full w-full">
       <head></head>
-      <body className="m-0 p-0 h-full w-full light">
-        <NavigationRail /> {/* This is fixed-positioned */}
-        <PostFormDialog />
-        <div className="flex flex-col !h-full" style={{ marginLeft: "80px" }}>
-          <header className="transparent !p-0">
-            <TopAppBar />
-          </header>
-          <main className="!flex-1 !p-0">{children}</main>
-        </div>
+      <body
+        className="m-0 p-0 h-full w-full light overflow-hidden"
+        suppressHydrationWarning={true}>
+        <AuthProvider>
+          {!asAuthPage && <NavigationRail />}
+          {!asAuthPage && <TopAppBar />}
+          {!asAuthPage && <PostFormDialog />}
+          <main
+            className={`responsive !pl-0 !max-w-full ${
+              asAuthPage ? "!p-0" : ""
+            }`}>
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

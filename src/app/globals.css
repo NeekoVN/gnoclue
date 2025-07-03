@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 mdui-navigation-rail {
-    background-color: var(--mdui-color-surface);
+  background-color: var(--mdui-color-surface);
 }
 
-div.field.border, div.textarea.border {
-    border-style: initial;
-    border-width: initial;
+div.field.border,
+div.textarea.border {
+  border-style: initial;
+  border-width: initial;
 }
 
-div.textarea.fill:not([data-ui="#search"]), div.field.fill:not([data-ui="#search"]) {
-    background-color: var(--surface) !important;
+div.textarea.fill:not([data-ui="#search"]),
+div.field.fill:not([data-ui="#search"]) {
+  background-color: var(--surface) !important;
 }

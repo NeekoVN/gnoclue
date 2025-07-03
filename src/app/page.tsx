@@ -2,25 +2,36 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuthCookie } from "./utils/auth";
+import { useAuth } from "./contexts/AuthContext";
 import App from "./components/app";
 
 export default function Home() {
   const router = useRouter();
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
     console.log("Home page: Component mounted");
     console.log("Home page: Checking authentication...");
-    const authToken = getAuthCookie();
-    console.log("Home page: Auth token:", authToken);
+    console.log("Home page: Auth loading:", loading);
+    console.log("Home page: Is authenticated:", isAuthenticated);
 
-    if (!authToken) {
-      console.log("Home page: No auth token, redirecting to signin");
+    if (!loading && !isAuthenticated) {
+      console.log("Home page: Not authenticated, redirecting to signin");
       router.push("/signin");
-    } else {
-      console.log("Home page: Auth token found, showing news feed");
+    } else if (!loading && isAuthenticated) {
+      console.log("Home page: Authenticated, showing news feed");
     }
-  }, [router]);
+  }, [router, isAuthenticated, loading]);
+
+  // Show loading only if we're not authenticated yet
+  if (loading && !isAuthenticated) {
+    return <div>Loading...</div>;
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return <App />;
 }

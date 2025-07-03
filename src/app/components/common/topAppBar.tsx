@@ -3,22 +3,19 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { removeAuthCookie } from "../../utils/auth";
-import { useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 
 const TopAppBar: React.FC = () => {
-  const router = useRouter();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
     console.log("Logging out user...");
-    removeAuthCookie();
-    console.log("Auth cookie removed, redirecting to signin");
-    router.push("/signin");
+    logout();
   };
 
   return (
-    <header style={{ backgroundColor: "var(--surface)" }}>
-      <nav>
+    <header style={{ backgroundColor: "var(--surface)" }} className="!px-0">
+      <nav className="top transparent !justify-between">
         <img
           src="/full-logo.svg"
           alt="logo"
@@ -28,7 +25,7 @@ const TopAppBar: React.FC = () => {
           style={{ backgroundColor: "var(--primary-container)" }}
         />
         <div
-          className="field center-align max !mx-40 medium prefix round fill active"
+          className="field center-align max medium prefix round fill active min-w-[200px] max-w-[600px] w-full"
           data-ui="#search">
           <i className="front">search</i>
           <input placeholder="Search" />
@@ -54,8 +51,18 @@ const TopAppBar: React.FC = () => {
           </menu>
         </div>
 
-        <button className="circle large transparent" onClick={handleLogout}>
-          <img className="responsive" src="/favicon.png" alt="avatar" />
+        <button
+          className="circle large transparent center-align"
+          onClick={handleLogout}
+          style={{ backgroundColor: "var(--primary-container)" }}>
+          <span
+            style={{
+              color: "var(--primary)",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+            }}>
+            U
+          </span>
         </button>
       </nav>
     </header>
