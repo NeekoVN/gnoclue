@@ -28,7 +28,13 @@ export default function SignInPage() {
     try {
       await login({ email, password });
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+      // Show full error details for debugging
+      const errorMessage =
+        err.response?.data?.message || err.message || "Login failed";
+      const fullError = `Error: ${errorMessage}\nStatus: ${
+        err.response?.status
+      }\nResponse: ${JSON.stringify(err.response?.data, null, 2)}`;
+      setError(fullError);
     } finally {
       setSubmitting(false);
     }
@@ -48,7 +54,7 @@ export default function SignInPage() {
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
+            <pre className="whitespace-pre-wrap text-sm">{error}</pre>
           </div>
         )}
 

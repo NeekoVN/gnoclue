@@ -14,3 +14,8 @@ div.textarea.fill:not([data-ui="#search"]),
 div.field.fill:not([data-ui="#search"]) {
   background-color: var(--surface) !important;
 }
+
+/* Ensure posts maintain their intended width */
+.max-w-2xl {
+  max-width: 42rem !important;
+}

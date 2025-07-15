@@ -7,8 +7,9 @@ import axios from "axios";
 import { IRegisterRequest } from "../types/auth";
 import { useAuth } from "../contexts/AuthContext";
 import Link from "next/link";
+import { API_BASE_URL } from "../config/api";
 
-const BASE_URL = "http://localhost:6996/api/auth";
+const BASE_URL = `${API_BASE_URL}/auth`;
 
 export default function SignUpPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -45,9 +46,15 @@ export default function SignUpPage() {
       await axios.post(`${BASE_URL}/register`, form);
       router.replace("/signin");
     } catch (err) {
-      const message =
-        (err as any)?.response?.data?.message || "Registration failed";
-      setError(message);
+      // Show full error details for debugging
+      const errorMessage =
+        (err as any)?.response?.data?.message ||
+        (err as any)?.message ||
+        "Registration failed";
+      const fullError = `Error: ${errorMessage}\nStatus: ${
+        (err as any)?.response?.status
+      }\nResponse: ${JSON.stringify((err as any)?.response?.data, null, 2)}`;
+      setError(fullError);
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +72,7 @@ export default function SignUpPage() {
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
+            <pre className="whitespace-pre-wrap text-sm">{error}</pre>
           </div>
         )}
 

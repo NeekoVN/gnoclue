@@ -18,6 +18,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Utility to clear all cookies
+const clearAllCookies = () => {
+  if (typeof document === "undefined") return;
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+  }
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<IUser | null>(null);
@@ -43,6 +54,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           })
           .catch((error) => {
             console.error("Failed to fetch user data:", error);
+            // If error is 401 or TokenExpiredError, log out
+            localStorage.removeItem("token");
+            setToken(null);
+            setUser(null);
+            clearAllCookies();
+            router.replace("/signin");
           })
           .finally(() => {
             setLoading(false);
@@ -67,10 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updatedAt: new Date().toISOString(),
     });
 
-    // Set cookie for middleware (7 days expiry)
-    document.cookie = `auth_token=${data.token}; path=/; max-age=${
-      60 * 60 * 24 * 7
-    }; SameSite=Lax`;
+    // No longer set cookie for middleware
+    // document.cookie = `auth_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     router.replace("/");
   };
 
@@ -78,8 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
-    // Remove cookie
-    document.cookie = "auth_token=; path=/; max-age=0";
+    clearAllCookies();
     router.replace("/signin");
   };
 

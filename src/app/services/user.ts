@@ -1,7 +1,8 @@
 import axios from "axios";
 import { IUser } from "../types/user";
+import { API_BASE_URL } from "../config/api";
 
-const BASE_URL = "http://localhost:6996/api/auth";
+const BASE_URL = `${API_BASE_URL}/auth`;
 
 // Get auth token for requests
 const getAuthToken = () => {
@@ -12,12 +13,28 @@ const getAuthToken = () => {
 // Create axios instance with auth header
 const createAuthAxios = () => {
   const token = getAuthToken();
-  return axios.create({
+  const instance = axios.create({
     baseURL: BASE_URL,
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  // Add response interceptor to handle 401 errors
+  instance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        if (typeof window !== "undefined" && window.location.pathname !== "/signin") {
+          window.location.href = "/signin";
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return instance;
 };
 
 // Get current user profile

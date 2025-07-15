@@ -10,6 +10,8 @@ import {
   updatePost,
 } from "../../services/post";
 import { calculatePostVoteCount } from "../../utils/voteCalculator";
+import { createOptimisticVoteUpdate } from "../../utils/optimisticVote";
+import { useSocket } from "../../contexts/SocketContext";
 import Image from "next/image";
 
 interface PostProps {
@@ -27,21 +29,76 @@ const Post: React.FC<PostProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
+  const { socket } = useSocket();
   const handleUpvote = async () => {
+    if (!currentUserId) return;
+
+    console.log("Upvoting post:", post._id, "User:", currentUserId);
+    console.log("Socket connected:", socket?.connected);
+
+    // Optimistic update
+    const optimisticPost = createOptimisticVoteUpdate(
+      post,
+      "upvote",
+      currentUserId
+    );
+    onPostUpdate?.(optimisticPost);
+
+    // Emit socket event for real-time updates
+    if (socket?.connected) {
+      console.log("Emitting vote_cast event");
+      socket.emit("vote_cast", {
+        postId: post._id,
+        voteType: "upvote",
+        userId: currentUserId,
+      });
+    } else {
+      console.warn("Socket not connected, skipping real-time update");
+    }
+
     try {
       const updatedPost = await upvotePost(post._id);
       onPostUpdate?.(updatedPost);
     } catch (error) {
       console.error("Failed to upvote post:", error);
+      // Revert optimistic update on error
+      onPostUpdate?.(post);
     }
   };
 
   const handleDownvote = async () => {
+    if (!currentUserId) return;
+
+    console.log("Downvoting post:", post._id, "User:", currentUserId);
+    console.log("Socket connected:", socket?.connected);
+
+    // Optimistic update
+    const optimisticPost = createOptimisticVoteUpdate(
+      post,
+      "downvote",
+      currentUserId
+    );
+    onPostUpdate?.(optimisticPost);
+
+    // Emit socket event for real-time updates
+    if (socket?.connected) {
+      console.log("Emitting vote_cast event");
+      socket.emit("vote_cast", {
+        postId: post._id,
+        voteType: "downvote",
+        userId: currentUserId,
+      });
+    } else {
+      console.warn("Socket not connected, skipping real-time update");
+    }
+
     try {
       const updatedPost = await downvotePost(post._id);
       onPostUpdate?.(updatedPost);
     } catch (error) {
       console.error("Failed to downvote post:", error);
+      // Revert optimistic update on error
+      onPostUpdate?.(post);
     }
   };
 
@@ -82,6 +139,21 @@ const Post: React.FC<PostProps> = ({
 
   const voteCount = calculatePostVoteCount(post);
   const commentCount = post.commentCount || 0;
+
+  // Check if current user has voted
+  const hasUpvoted = currentUserId && post.upvotes?.includes(currentUserId);
+  const hasDownvoted = currentUserId && post.downvotes?.includes(currentUserId);
+
+  // Debug vote count
+  console.log("Post vote count:", {
+    postId: post._id,
+    upvotes: post.upvotes?.length || 0,
+    downvotes: post.downvotes?.length || 0,
+    calculatedVoteCount: voteCount,
+    hasUpvoted,
+    hasDownvoted,
+    currentUserId,
+  });
 
   // Get username from post data
   const username =
@@ -211,17 +283,21 @@ const Post: React.FC<PostProps> = ({
           </div>
         </div>
       ) : (
-        <p className="mt-2">{post.content}</p>
+        <p className="mt-2 whitespace-pre-wrap">{post.content}</p>
       )}
 
       {/* upvote/downvote, comment, share */}
       <div className="flex items-start gap-2 mt-4">
-        <nav className="group split">
-          <button className="left-round fill" onClick={handleUpvote}>
+        <nav className="group connected primary-container">
+          <button
+            className={`left-round${hasUpvoted ? " active" : ""}`}
+            onClick={handleUpvote}>
             <i>keyboard_arrow_up</i>
             <span className="font-bold">{voteCount}</span>
           </button>
-          <button className="right-round square fill" onClick={handleDownvote}>
+          <button
+            className={`right-round square${hasDownvoted ? " active" : ""}`}
+            onClick={handleDownvote}>
             <i>keyboard_arrow_down</i>
           </button>
         </nav>

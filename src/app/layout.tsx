@@ -7,8 +7,11 @@ import "./globals.css";
 import NavigationRail from "./components/common/navigationRail";
 import TopAppBar from "./components/common/topAppBar";
 import PostFormDialog from "./components/postFormDialog";
+import SocketStatus from "./components/common/socketStatus";
 import { usePathname } from "next/navigation";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SocketProvider } from "./contexts/SocketContext";
+import AuthGuard from "./components/AuthGuard";
 
 export default function RootLayout({
   children,
@@ -25,15 +28,19 @@ export default function RootLayout({
         className="m-0 p-0 h-full w-full light overflow-hidden"
         suppressHydrationWarning={true}>
         <AuthProvider>
-          {!asAuthPage && <NavigationRail />}
-          {!asAuthPage && <TopAppBar />}
-          {!asAuthPage && <PostFormDialog />}
-          <main
-            className={`responsive !pl-0 !max-w-full ${
-              asAuthPage ? "!p-0" : ""
-            }`}>
-            {children}
-          </main>
+          <SocketProvider>
+            <AuthGuard>
+              {!asAuthPage && <NavigationRail />}
+              {!asAuthPage && <TopAppBar />}
+              {!asAuthPage && <PostFormDialog />}
+              <main
+                className={`!pl-0 !max-w-full ${asAuthPage ? "!p-0" : ""}`}
+                style={{ width: "100%", minWidth: "100%" }}>
+                {children}
+              </main>
+              <SocketStatus />
+            </AuthGuard>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>
