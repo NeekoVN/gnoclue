@@ -9,13 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/crypto-js": "^4.2.2",
     "axios": "^1.10.0",
-    "beercss": "^3.11.18",
+    "beercss": "^3.11.33",
+    "crypto-js": "^4.2.0",
     "hashtag-regex": "^2.2.0",
     "material-dynamic-colors": "^1.1.2",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-scroll-to-bottom": "^4.2.0",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {

@@ -23,7 +23,6 @@ const Feed: React.FC = () => {
     (postId: string, updatedPost: IPost) => {
       console.log("Feed: Handling vote update for post:", postId);
       console.log("Feed: Updated post data:", updatedPost);
-      console.log("Feed: Current posts count:", posts.length);
 
       setPosts((prevPosts) => {
         const postIndex = prevPosts.findIndex((post) => post._id === postId);
@@ -61,7 +60,7 @@ const Feed: React.FC = () => {
         }
       });
     },
-    [posts.length]
+    [] // Removed posts.length dependency to prevent infinite loops
   );
 
   // Handle vote errors
@@ -77,54 +76,57 @@ const Feed: React.FC = () => {
     onVoteError: handleVoteError,
   });
 
+  const fetchPosts = useCallback(
+    async (pageNum: number = 1, append: boolean = false) => {
+      try {
+        if (pageNum === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+        setError(null);
+
+        const response = await getPosts(pageNum, 10);
+
+        if (append) {
+          setPosts((prev) => {
+            // Create a map of existing posts by ID for quick lookup
+            const existingPostsMap = new Map(
+              prev.map((post) => [post._id, post])
+            );
+
+            // Add new posts, avoiding duplicates
+            response.posts.forEach((newPost) => {
+              if (!existingPostsMap.has(newPost._id)) {
+                existingPostsMap.set(newPost._id, newPost);
+              }
+            });
+
+            // Convert back to array
+            return Array.from(existingPostsMap.values());
+          });
+        } else {
+          setPosts(response.posts);
+        }
+
+        // Check if we have more posts to load
+        setHasMore(response.posts.length === 10);
+        setPage(pageNum);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to load posts");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    []
+  );
+
   // Manual refresh function for testing
   const manualRefresh = useCallback(() => {
     console.log("Manual refresh triggered");
     fetchPosts(1, false);
-  }, []);
-
-  const fetchPosts = async (pageNum: number = 1, append: boolean = false) => {
-    try {
-      if (pageNum === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
-      setError(null);
-
-      const response = await getPosts(pageNum, 10);
-
-      if (append) {
-        setPosts((prev) => {
-          // Create a map of existing posts by ID for quick lookup
-          const existingPostsMap = new Map(
-            prev.map((post) => [post._id, post])
-          );
-
-          // Add new posts, avoiding duplicates
-          response.posts.forEach((newPost) => {
-            if (!existingPostsMap.has(newPost._id)) {
-              existingPostsMap.set(newPost._id, newPost);
-            }
-          });
-
-          // Convert back to array
-          return Array.from(existingPostsMap.values());
-        });
-      } else {
-        setPosts(response.posts);
-      }
-
-      // Check if we have more posts to load
-      setHasMore(response.posts.length === 10);
-      setPage(pageNum);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load posts");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  }, [fetchPosts]);
 
   useEffect(() => {
     fetchPosts();
@@ -148,7 +150,7 @@ const Feed: React.FC = () => {
       feedElement.addEventListener("scroll", handleScroll);
       return () => feedElement.removeEventListener("scroll", handleScroll);
     }
-  }, [page, loadingMore, hasMore]);
+  }, [page, loadingMore, hasMore, fetchPosts]);
 
   const handlePostUpdate = (updatedPost: IPost) => {
     setPosts((prev) => {
@@ -183,16 +185,11 @@ const Feed: React.FC = () => {
   return (
     <div
       ref={feedRef}
-      className="w-full h-full overflow-y-auto flex justify-center px-4 py-4"
-      style={{
-        width: "100%",
-        minWidth: "100%",
-        maxWidth: "100%",
-        boxSizing: "border-box",
-      }}
+      className="!w-full !h-full flex justify-center px-4 py-4"
+      style={{ boxSizing: "border-box" }}
       suppressHydrationWarning={true}>
       <div
-        className="w-full max-w-2xl space-y-4 !pt-4"
+        className="w-full max-w-2xl space-y-4 !pt-4 !px-2"
         style={{
           width: "100%",
           maxWidth: "42rem",

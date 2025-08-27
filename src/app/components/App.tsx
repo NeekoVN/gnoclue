@@ -5,13 +5,11 @@ import Feed from "./feed";
 import "../globals.css";
 import "../styles/homePanel.css";
 
-export default function App() {
+export default function App({ children }: { children?: React.ReactNode }) {
   return (
-    <div
-      className="home-panel flex m-0 p-0 justify-center items-start !h-full !w-full !bg-white border"
-      style={{ width: "100%", minWidth: "100%" }}>
-      <div className="w-full h-full" style={{ width: "100%" }}>
-        <Feed />
+    <div className="home-panel !bg-white !h-full !border !w-full">
+      <div className="!h-full !w-full !overflow-y-auto">
+        {children ?? <Feed />}
       </div>
     </div>
   );

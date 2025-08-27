@@ -1,8 +1,9 @@
 import axios from "axios";
-import { IUser } from "../types/user";
+import { IUser, IUserPublic } from "../types/user";
 import { API_BASE_URL } from "../config/api";
 
-const BASE_URL = `${API_BASE_URL}/auth`;
+const AUTH_BASE_URL = `${API_BASE_URL}/auth`;
+const USERS_BASE_URL = `${API_BASE_URL}/users`;
 
 // Get auth token for requests
 const getAuthToken = () => {
@@ -14,7 +15,7 @@ const getAuthToken = () => {
 const createAuthAxios = () => {
   const token = getAuthToken();
   const instance = axios.create({
-    baseURL: BASE_URL,
+    baseURL: AUTH_BASE_URL,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -44,9 +45,52 @@ export const getCurrentUser = async (): Promise<IUser> => {
   return response.data;
 };
 
-// Get user by ID
-export const getUserById = async (userId: string): Promise<IUser> => {
-  const axiosInstance = createAuthAxios();
-  const response = await axiosInstance.get<IUser>(`/${userId}`);
-  return response.data;
-}; 
+// Public user by ID
+export const getPublicUserById = async (userId: string): Promise<IUserPublic> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await axios.get<IUserPublic>(`${USERS_BASE_URL}/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+// User's posts (paginated)
+export interface IUserPostsResponse<TPost> {
+  posts: TPost[];
+  page: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export const getUserPosts = async <TPost = unknown>(
+  userId: string,
+  page = 1,
+  limit = 10
+): Promise<IUserPostsResponse<TPost>> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await axios.get<IUserPostsResponse<TPost>>(
+    `${USERS_BASE_URL}/${userId}/posts?page=${page}&limit=${limit}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};
+
+// Follow / Unfollow
+export const followUser = async (userId: string): Promise<{ ok: boolean; targetFollowers: number }> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await axios.post<{ ok: boolean; targetFollowers: number }>(
+    `${USERS_BASE_URL}/${userId}/follow`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};
+
+export const unfollowUser = async (userId: string): Promise<{ ok: boolean; targetFollowers: number }> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const res = await axios.delete<{ ok: boolean; targetFollowers: number }>(
+    `${USERS_BASE_URL}/${userId}/follow`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};

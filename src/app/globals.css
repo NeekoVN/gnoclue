@@ -1,4 +1,13 @@
 @import "tailwindcss";
+/* Mobile viewport stability: use dynamic viewport height */
+.h-dvh {
+  height: 100dvh !important;
+}
+
+/* Respect safe area at the bottom for bottom-aligned bars */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px)) !important;
+}
 
 mdui-navigation-rail {
   background-color: var(--mdui-color-surface);
@@ -15,7 +24,80 @@ div.field.fill:not([data-ui="#search"]) {
   background-color: var(--surface) !important;
 }
 
+/* Fix responsive button in Chromium browsers */
+button.responsive {
+  inline-size: -webkit-fill-available !important;
+}
+
 /* Ensure posts maintain their intended width */
 .max-w-2xl {
   max-width: 42rem !important;
+}
+
+/* Avoid BeerCSS body grid clobbering our layout when a direct <main> child exists.
+   We don't render a <main> element (we use [role="main"]) but this is a safety net
+   in case third-party components introduce one. */
+body:has(> main) {
+  display: block !important;
+}
+
+/* Custom breakpoint for bottom navbar */
+@media only screen and (min-width: 601px) {
+  .bottom-navbar {
+    display: none !important;
+  }
+}
+
+/* Apply padding-left:0 only when bottom navbar is hidden (>=601px) */
+@media only screen and (min-width: 601px) {
+  .pl-when-navbar-hidden {
+    padding-left: 0 !important;
+  }
+}
+
+/* Bottom navbar styling - text under icons */
+.bottom-navbar .tabbed > * {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bottom-navbar .tabbed > * > i {
+  margin-bottom: -0.4rem !important;
+}
+
+.bottom-navbar .tabbed > * > span {
+  font-size: 0.75rem !important;
+  line-height: 1 !important;
+}
+
+/* Hide chat button in nav rail when messaging panel is visible */
+@media only screen and (min-width: 1280px) {
+  nav a[href="/messages"] {
+    display: none !important;
+  }
+}
+
+/* Responsive messaging panel */
+@media only screen and (min-width: 1280px) {
+  .message-panel-container {
+    width: 30vw !important;
+    min-width: 320px !important;
+    max-width: 35vw !important;
+  }
+}
+
+@media only screen and (max-width: 1279px) {
+  .message-panel-container {
+    width: 100% !important;
+  }
+}
+
+/* Ensure message panel content doesn't overflow */
+.message-panel-container {
+  overflow: hidden !important;
+}
+
+.message-panel-container .flex-1 {
+  min-width: 0 !important;
 }

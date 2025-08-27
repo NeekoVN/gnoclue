@@ -14,3 +14,12 @@ export interface IUser {
     createdAt: string; // Dates are returned as ISO 8601 strings
     updatedAt: string; // Dates are returned as ISO 8601 strings
 }
+
+// Public-facing user info per API docs for `/api/users/:id`
+export interface IUserPublic {
+    _id: string;
+    username: string;
+    followers: string[]; // Array of User IDs (ObjectIds)
+    following: string[]; // Array of User IDs (ObjectIds)
+    createdAt: string;
+}

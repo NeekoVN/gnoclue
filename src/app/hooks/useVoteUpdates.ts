@@ -10,6 +10,7 @@ interface UseVoteUpdatesProps {
 export const useVoteUpdates = ({ onVoteUpdate, onVoteError }: UseVoteUpdatesProps = {}) => {
   const { socket, isConnected } = useSocket();
   const lastVoteTime = useRef<number>(0);
+  const listenersSetup = useRef<boolean>(false);
 
   const handleVoteUpdate = useCallback(
     (data: unknown) => {
@@ -84,20 +85,19 @@ export const useVoteUpdates = ({ onVoteUpdate, onVoteError }: UseVoteUpdatesProp
     [onVoteError]
   );
 
-  // Fallback polling mechanism
+  // Fallback polling mechanism - DISABLED to prevent loops
   useEffect(() => {
     if (!isConnected) return;
 
-    const pollInterval = setInterval(() => {
-      // Poll for updates every 5 seconds if no socket events received in last 10 seconds
-      const timeSinceLastVote = Date.now() - lastVoteTime.current;
-      if (timeSinceLastVote > 10000) {
-        console.log("No recent socket events, polling for updates...");
-        // You could implement a polling mechanism here if needed
-      }
-    }, 5000);
+    // Disable polling for now to prevent API spam
+    // const pollInterval = setInterval(() => {
+    //   const timeSinceLastVote = Date.now() - lastVoteTime.current;
+    //   if (timeSinceLastVote > 10000) {
+    //     console.log("No recent socket events, polling for updates...");
+    //   }
+    // }, 5000);
 
-    return () => clearInterval(pollInterval);
+    // return () => clearInterval(pollInterval);
   }, [isConnected]);
 
   useEffect(() => {
@@ -106,47 +106,43 @@ export const useVoteUpdates = ({ onVoteUpdate, onVoteError }: UseVoteUpdatesProp
       return;
     }
 
+    // Prevent multiple listener setups
+    if (listenersSetup.current) {
+      console.log("Vote update listeners already set up, skipping");
+      return;
+    }
+
     console.log("Setting up vote update listeners");
 
     // Listen for vote updates
-    socket.on("vote_updated", (data) => {
-      console.log("Received vote_updated event:", data);
-      handleVoteUpdate(data);
-    });
+    socket.on("vote_updated", handleVoteUpdate);
     
     // Listen for post updates (in case the backend sends general post updates)
-    socket.on("post_updated", (data) => {
-      console.log("Received post_updated event:", data);
-      handleVoteUpdate(data);
-    });
+    socket.on("post_updated", handleVoteUpdate);
 
     // Listen for any custom vote events your backend might be sending
-    socket.on("vote_cast", (data) => {
-      console.log("Received vote_cast event:", data);
-      handleVoteUpdate(data);
-    });
+    socket.on("vote_cast", handleVoteUpdate);
 
     // Listen for general post updates
-    socket.on("post_update", (data) => {
-      console.log("Received post_update event:", data);
-      handleVoteUpdate(data);
-    });
+    socket.on("post_update", handleVoteUpdate);
     
     // Listen for vote errors
-    socket.on("vote_error", (error) => {
-      console.log("Received vote_error event:", error);
-      handleVoteError(error);
-    });
+    socket.on("vote_error", handleVoteError);
+
+    listenersSetup.current = true;
 
     return () => {
       console.log("Cleaning up vote update listeners");
-      socket.off("vote_updated", handleVoteUpdate);
-      socket.off("post_updated", handleVoteUpdate);
-      socket.off("vote_cast", handleVoteUpdate);
-      socket.off("post_update", handleVoteUpdate);
-      socket.off("vote_error", handleVoteError);
+      if (socket) {
+        socket.off("vote_updated", handleVoteUpdate);
+        socket.off("post_updated", handleVoteUpdate);
+        socket.off("vote_cast", handleVoteUpdate);
+        socket.off("post_update", handleVoteUpdate);
+        socket.off("vote_error", handleVoteError);
+      }
+      listenersSetup.current = false;
     };
-  }, [socket, isConnected, handleVoteUpdate, handleVoteError]);
+  }, [socket, isConnected]); // Removed handleVoteUpdate and handleVoteError from dependencies
 
   return {
     isConnected,

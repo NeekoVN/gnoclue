@@ -1,13 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
-import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 const NavigationRail: React.FC = () => {
   const [isMax, setIsMax] = useState(false);
 
   const toggleMax = () => {
     setIsMax(!isMax);
+  };
+
+  const { logout } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.warn("Sign out encountered an error", e);
+    }
   };
 
   return (
@@ -21,16 +32,16 @@ const NavigationRail: React.FC = () => {
           <span>Add Post</span>
         </button>
       </header>
-      <a>
+      <Link href="/">
         <i>home</i>
         <span>Home</span>
-      </a>
+      </Link>
       <a>
         <i>
           notifications
           <div className="badge">1</div>
         </i>
-        <span>Notifs</span>
+        <span>Alerts</span>
       </a>
       <a>
         <i>bookmark</i>
@@ -40,8 +51,18 @@ const NavigationRail: React.FC = () => {
         <i>folder</i>
         <span>Feeds</span>
       </a>
+      {/* TODO: actually hide the button on large screen */}
+      <Link href="/messages" className="block 2xl:hidden">
+        <i>chat</i>
+        <span>Chat</span>
+      </Link>
+      <div style={{ flex: 1 }}></div>
+      <button className="transparent vertical" onClick={handleSignOut}>
+        <i>logout</i>
+        <span>Sign out</span>
+      </button>
     </nav>
   );
 };
 
-export default dynamic(() => Promise.resolve(NavigationRail), { ssr: false });
+export default NavigationRail;

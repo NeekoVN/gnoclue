@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SimpleE2EClient } from "@/app/crypto/simpleE2E";
 import { login as apiLogin } from "../services/auth";
 import { ILoginRequest, IAuthLoginResponse } from "../types/auth";
 import { getCurrentUser } from "../services/user";
@@ -13,21 +14,14 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (credentials: ILoginRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Utility to clear all cookies
-const clearAllCookies = () => {
-  if (typeof document === "undefined") return;
-  const cookies = document.cookie.split(";");
-  for (const cookie of cookies) {
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-  }
-};
+// Utility moved to a centralized purge helper
+import { purgeAllClientData } from "../utils/purge";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
@@ -51,6 +45,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         getCurrentUser()
           .then((userData) => {
             setUser(userData);
+            try {
+              localStorage.setItem("userId", userData._id);
+            } catch {}
           })
           .catch((error) => {
             console.error("Failed to fetch user data:", error);
@@ -58,7 +55,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.removeItem("token");
             setToken(null);
             setUser(null);
-            clearAllCookies();
             router.replace("/signin");
           })
           .finally(() => {
@@ -68,11 +64,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
     }
-  }, [mounted]);
+  }, [mounted, router]);
+
+  // Initialize SimpleE2E client when user is available
+  useEffect(() => {
+    if (user?._id) {
+      const client = SimpleE2EClient.getInstance();
+      client.setUserId(user._id);
+    }
+  }, [user?._id]);
 
   const login = async (credentials: ILoginRequest) => {
     const data: IAuthLoginResponse = await apiLogin(credentials);
     localStorage.setItem("token", data.token);
+    try {
+      localStorage.setItem("userId", data._id);
+    } catch {}
     setToken(data.token);
 
     // Set user data from login response
@@ -84,17 +91,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updatedAt: new Date().toISOString(),
     });
 
+    // Initialize SimpleE2E client after login
+    try {
+      const client = SimpleE2EClient.getInstance();
+      client.setUserId(data._id);
+    } catch {}
+
     // No longer set cookie for middleware
     // document.cookie = `auth_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     router.replace("/");
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
+  const logout = async () => {
+    try {
+      await purgeAllClientData();
+    } catch {}
+    // Ensure React state reflects logged-out state
     setToken(null);
     setUser(null);
-    clearAllCookies();
+    try {
+      localStorage.removeItem("userId");
+    } catch {}
     router.replace("/signin");
+  };
+
+  const refreshUser = async () => {
+    try {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+      // If refresh fails, log out the user
+      logout();
+    }
   };
 
   // Don't render children until mounted to prevent hydration mismatch
@@ -104,7 +133,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ token, user, isAuthenticated: !!token, loading, login, logout }}>
+      value={{
+        token,
+        user,
+        isAuthenticated: !!token,
+        loading,
+        login,
+        logout,
+        refreshUser,
+      }}>
       {children}
     </AuthContext.Provider>
   );

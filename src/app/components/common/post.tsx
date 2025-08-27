@@ -13,6 +13,8 @@ import { calculatePostVoteCount } from "../../utils/voteCalculator";
 import { createOptimisticVoteUpdate } from "../../utils/optimisticVote";
 import { useSocket } from "../../contexts/SocketContext";
 import Image from "next/image";
+import Link from "next/link";
+import Avatar from "./avatar";
 
 interface PostProps {
   post: IPost;
@@ -145,21 +147,38 @@ const Post: React.FC<PostProps> = ({
   const hasDownvoted = currentUserId && post.downvotes?.includes(currentUserId);
 
   // Debug vote count
-  console.log("Post vote count:", {
-    postId: post._id,
-    upvotes: post.upvotes?.length || 0,
-    downvotes: post.downvotes?.length || 0,
-    calculatedVoteCount: voteCount,
-    hasUpvoted,
-    hasDownvoted,
-    currentUserId,
-  });
+  // console.log("Post vote count:", {
+  //   postId: post._id,
+  //   upvotes: post.upvotes?.length || 0,
+  //   downvotes: post.downvotes?.length || 0,
+  //   calculatedVoteCount: voteCount,
+  //   hasUpvoted,
+  //   hasDownvoted,
+  //   currentUserId,
+  // });
 
   // Get username from post data
   const username =
     typeof post.userId === "string"
       ? "Unknown User"
       : post.userId.username || "Unknown User";
+
+  const authorId =
+    typeof post.userId === "string" ? post.userId : post.userId._id;
+
+  // Generate avatar color based on username
+  const avatarColor = (() => {
+    const colors = [
+      "var(--error)",
+      "var(--primary)",
+      "var(--tertiary)",
+      "var(--secondary)",
+      "var(--surface-variant)",
+      "var(--outline)",
+    ];
+    const index = username.charCodeAt(0) % colors.length;
+    return colors[index];
+  })();
 
   // Format timestamp
   const formatTimestamp = (timestamp: string | Date) => {
@@ -177,16 +196,14 @@ const Post: React.FC<PostProps> = ({
   };
 
   return (
-    <article className="border round">
+    <article className="border rounded">
       <div className="flex items-start justify-between gap-2">
         {/* author profile */}
-        <div className="flex items-center gap-2">
-          <Image
-            src="/favicon.png"
-            alt={`${username}'s avatar`}
-            width={48}
-            height={48}
-            className="rounded-full"
+        <Link href={`/users/${authorId}`} className="flex items-center gap-2">
+          <Avatar
+            fallbackInitial={username.charAt(0)}
+            size="48px"
+            backgroundColor={avatarColor}
           />
           <div className="flex flex-col items-start justify-center">
             <p className="!p-0 !m-0 text-sm font-bold">{username}</p>
@@ -194,7 +211,7 @@ const Post: React.FC<PostProps> = ({
               {formatTimestamp(post.createdAt)}
             </p>
           </div>
-        </div>
+        </Link>
         {/* post actions menu */}
         <div>
           <nav className="min active">
@@ -305,10 +322,10 @@ const Post: React.FC<PostProps> = ({
           <i>comment</i>
           <span>{commentCount}</span>
         </button>
-        <button className="fill">
+        {/* <button className="fill">
           <i>share</i>
           <span>Share</span>
-        </button>
+        </button> */}
       </div>
     </article>
   );
