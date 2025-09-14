@@ -1,18 +1,20 @@
 /**
- * Simple Conversation-Based E2E Encryption using CryptoJS
+ * Simple Conversation-Based E2E Encryption using @noble/ciphers
  * 
  * This replaces the complex Matrix Olm E2E with a simpler approach:
  * - Each conversation gets a unique AES-256 key derived deterministically
  * - Keys are derived from conversation ID and participant IDs
- * - Messages are encrypted client-side before sending
+ * - Messages are encrypted client-side before sending using AES-256-GCM
  * - Much simpler than Matrix E2E but still provides meaningful protection
  * - Works in HTTP contexts (unlike Web Crypto API)
+ * - Uses authenticated encryption (AES-GCM) for better security
  * 
  * Key Derivation: Both users derive the same key from conversation metadata
  * to ensure they can encrypt/decrypt each other's messages.
  */
 
-import CryptoJS from 'crypto-js';
+import { gcm } from '@noble/ciphers/aes.js';
+import { randomBytes, utf8ToBytes, bytesToUtf8, bytesToHex, hexToBytes } from '@noble/ciphers/utils.js';
 
 export interface EncryptedPayload {
   ciphertext: string;
@@ -50,24 +52,29 @@ export class SimpleE2EClient {
   /**
    * Derive a conversation key deterministically from conversation metadata
    */
-  private deriveConversationKey(conversationId: string, participantIds: string[]): string {
+  private async deriveConversationKey(conversationId: string, participantIds: string[]): Promise<Uint8Array> {
     // Sort participant IDs to ensure consistent ordering
     const sortedParticipants = [...participantIds].sort();
     
     // Create a deterministic seed from conversation ID and participants
     const seed = `${conversationId}:${sortedParticipants.join(',')}`;
     
-    // Hash the seed to create a deterministic key
-    return CryptoJS.SHA256(seed).toString();
+    // Convert to bytes and hash using Web Crypto API
+    const seedBytes = utf8ToBytes(seed);
+    
+    // Use Web Crypto API for SHA-256 (works in all contexts)
+    const hash = await crypto.subtle.digest('SHA-256', seedBytes);
+    return new Uint8Array(hash);
   }
 
   /**
    * Get or create a conversation key
    */
-  private getConversationKey(conversationId: string, participantIds?: string[]): string {
+  private async getConversationKey(conversationId: string, participantIds?: string[]): Promise<Uint8Array> {
     // Check cache first
     if (this.keyCache.has(conversationId)) {
-      return this.keyCache.get(conversationId)!;
+      const cachedKey = this.keyCache.get(conversationId)!;
+      return hexToBytes(cachedKey);
     }
 
     // Try to load from localStorage
@@ -75,8 +82,9 @@ export class SimpleE2EClient {
     if (storedKey) {
       try {
         const keyData = JSON.parse(storedKey);
+        const keyBytes = hexToBytes(keyData.key);
         this.keyCache.set(conversationId, keyData.key);
-        return keyData.key;
+        return keyBytes;
       } catch (error) {
         console.warn('[Simple E2E] Failed to load stored key, generating new one:', error);
       }
@@ -86,39 +94,40 @@ export class SimpleE2EClient {
     const ids = participantIds || [conversationId];
     
     // Derive the key deterministically
-    const key = this.deriveConversationKey(conversationId, ids);
+    const keyBytes = await this.deriveConversationKey(conversationId, ids);
+    const keyHex = bytesToHex(keyBytes);
 
     // Store locally
     const keyData = {
-      key,
+      key: keyHex,
       conversationId,
       createdAt: Date.now()
     };
     localStorage.setItem(`conv_key_${conversationId}`, JSON.stringify(keyData));
     
-    this.keyCache.set(conversationId, key);
-    return key;
+    this.keyCache.set(conversationId, keyHex);
+    return keyBytes;
   }
 
   /**
    * Encrypt a message for a conversation
    */
   async encrypt(conversationId: string, plaintext: string, participantIds?: string[]): Promise<EncryptedPayload> {
-    const key = this.getConversationKey(conversationId, participantIds);
+    const key = await this.getConversationKey(conversationId, participantIds);
     
-    // Generate unique IV for this encryption
-    const iv = CryptoJS.lib.WordArray.random(16);
+    // Generate unique 96-bit IV for AES-GCM
+    const iv = randomBytes(12);
     
-    // Encrypt the message using AES-256-CBC (CryptoJS doesn't support GCM in browser)
-    const encrypted = CryptoJS.AES.encrypt(plaintext, key, {
-      iv: iv,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7
-    });
+    // Convert plaintext to bytes
+    const plaintextBytes = utf8ToBytes(plaintext);
+    
+    // Encrypt using AES-256-GCM
+    const cipher = gcm(key, iv);
+    const ciphertext = cipher.encrypt(plaintextBytes);
 
     return {
-      ciphertext: encrypted.toString(),
-      nonce: iv.toString(),
+      ciphertext: bytesToHex(ciphertext),
+      nonce: bytesToHex(iv),
       conversationId
     };
   }
@@ -128,19 +137,17 @@ export class SimpleE2EClient {
    */
   async decrypt(conversationId: string, payload: { ciphertext: string; nonce: string }, participantIds?: string[]): Promise<string> {
     try {
-      const key = this.getConversationKey(conversationId, participantIds);
+      const key = await this.getConversationKey(conversationId, participantIds);
       
-      // Decode the IV
-      const iv = CryptoJS.enc.Hex.parse(payload.nonce);
+      // Decode the IV and ciphertext
+      const iv = hexToBytes(payload.nonce);
+      const ciphertextBytes = hexToBytes(payload.ciphertext);
 
-      // Decrypt
-      const decrypted = CryptoJS.AES.decrypt(payload.ciphertext, key, {
-        iv: iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-      });
+      // Decrypt using AES-256-GCM
+      const cipher = gcm(key, iv);
+      const plaintextBytes = cipher.decrypt(ciphertextBytes);
 
-      return decrypted.toString(CryptoJS.enc.Utf8);
+      return bytesToUtf8(plaintextBytes);
     } catch (error) {
       console.warn('[Simple E2E] Decryption failed:', error);
       throw new Error('Decryption failed');
@@ -152,7 +159,7 @@ export class SimpleE2EClient {
    */
   async hasConversationKey(conversationId: string): Promise<boolean> {
     try {
-      this.getConversationKey(conversationId);
+      await this.getConversationKey(conversationId);
       return true;
     } catch {
       return false;
