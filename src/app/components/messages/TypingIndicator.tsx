@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ITypingIndicator } from "../../types/messaging";
 
 interface TypingIndicatorProps {
@@ -12,7 +12,24 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   typingUsers,
   className = "",
 }) => {
-  if (typingUsers.length === 0) return null;
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (typingUsers.length > 0) {
+      setShouldRender(true);
+      // Small delay to ensure DOM element is rendered before fade in
+      const fadeInTimer = setTimeout(() => setIsVisible(true), 10);
+      return () => clearTimeout(fadeInTimer);
+    } else {
+      setIsVisible(false);
+      // Wait for fade out animation to complete before removing from DOM
+      const fadeOutTimer = setTimeout(() => setShouldRender(false), 200);
+      return () => clearTimeout(fadeOutTimer);
+    }
+  }, [typingUsers.length]);
+
+  if (!shouldRender) return null;
 
   const getTypingText = () => {
     if (typingUsers.length === 1) {
@@ -31,6 +48,8 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
       className={`flex round border primary-container primary-border items-center gap-2 !px-5 !py-2 !my-1 !mx-1 ${className}`}
       style={{
         maxWidth: "fit-content",
+        opacity: isVisible ? 1 : 0,
+        transition: "opacity 200ms ease-in-out",
       }}>
       {/* Animated dots */}
       <div className="flex gap-1">
