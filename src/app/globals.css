@@ -79,17 +79,36 @@ body:has(> main) {
 }
 
 /* Responsive messaging panel */
+/* Mobile-first approach with better breakpoints */
+@media only screen and (max-width: 639px) {
+  .message-panel-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media only screen and (min-width: 640px) and (max-width: 1023px) {
+  .message-panel-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media only screen and (min-width: 1024px) and (max-width: 1279px) {
+  .message-panel-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
 @media only screen and (min-width: 1280px) {
   .message-panel-container {
     width: 30vw !important;
     min-width: 320px !important;
     max-width: 35vw !important;
-  }
-}
-
-@media only screen and (max-width: 1279px) {
-  .message-panel-container {
-    width: 100% !important;
   }
 }
 
@@ -100,4 +119,16 @@ body:has(> main) {
 
 .message-panel-container .flex-1 {
   min-width: 0 !important;
+}
+
+/* Additional mobile responsiveness for message panel */
+@media only screen and (max-width: 639px) {
+  .message-panel-container {
+    border-radius: 0 !important;
+  }
+
+  .message-panel-container .flex-1 {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
 }

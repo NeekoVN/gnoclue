@@ -653,7 +653,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
           ...(isFullWidth && {
             width: "100%",
             maxWidth: "none",
-            minWidth: "auto",
+            minWidth: "0",
           }),
         }}>
         <ParticipantsList
@@ -669,7 +669,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
         />
 
         {/* Right Side - Chat Interface */}
-        <div className="flex-1 flex flex-col relative">
+        <div className="flex-1 flex flex-col relative min-w-0">
           {/* Top Part - Chat Header */}
           <ChatHeader
             activeConversation={activeConversation}

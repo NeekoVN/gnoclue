@@ -108,10 +108,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
   }, [messages, currentUserId, onMessageVisible]);
 
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 overflow-y-auto"
-      style={{ backgroundColor: "var(--surface)" }}>
+    <div ref={containerRef} style={{ backgroundColor: "var(--surface)" }}>
       <ScrollToBottom className="!h-full !w-full p-6 space-y-3">
         {messages.length === 0 && (
           <div
