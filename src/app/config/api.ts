@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
   }
   
   // Fallback for server-side rendering
-  return 'http://localhost:6996/api';
+  return 'https://gnoclue-api.ditmenavi.com/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl(); 

@@ -44,8 +44,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const protocol =
       typeof window !== "undefined" ? window.location.protocol : "http:";
     const host =
-      typeof window !== "undefined" ? window.location.hostname : "localhost";
-    const socketUrl = `${protocol}//${host}:6996`;
+      typeof window !== "undefined"
+        ? window.location.hostname
+        : "gnoclue-api.ditmenavi.com";
+    const socketUrl =
+      host === "gnoclue-api.ditmenavi.com"
+        ? "https://gnoclue-api.ditmenavi.com"
+        : `${protocol}//${host}:6996`;
 
     const newSocket = io(socketUrl, {
       auth: {
