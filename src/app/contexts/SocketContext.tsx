@@ -40,17 +40,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     connectingRef.current = true;
 
-    // Use the same host as the current page for Socket.IO connection
-    const protocol =
-      typeof window !== "undefined" ? window.location.protocol : "http:";
-    const host =
-      typeof window !== "undefined"
-        ? window.location.hostname
-        : "gnoclue-api.ditmenavi.com";
-    const socketUrl =
-      host === "gnoclue-api.ditmenavi.com"
-        ? "https://gnoclue-api.ditmenavi.com"
-        : `${protocol}//${host}:6996`;
+    // Use production API domain for Socket.IO connection
+    const isProduction =
+      typeof window !== "undefined" &&
+      !window.location.hostname.includes("localhost") &&
+      !window.location.hostname.includes("127.0.0.1");
+
+    const socketUrl = isProduction
+      ? "https://gnoclue-api.ditmenavi.com"
+      : typeof window !== "undefined"
+      ? `${window.location.protocol}//${window.location.hostname}:6996`
+      : "http://localhost:6996";
 
     const newSocket = io(socketUrl, {
       auth: {
