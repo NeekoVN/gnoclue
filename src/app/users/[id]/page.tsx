@@ -11,7 +11,7 @@ import {
 import { IUserPublic } from "../../types/user";
 import { IPost } from "../../types/post";
 import { createDirectConversation } from "../../services/messaging";
-import App from "../../components/app";
+import App from "../../components/App";
 import Avatar from "../../components/common/avatar";
 import Post from "../../components/common/post";
 import { useAuth } from "../../contexts/AuthContext";
