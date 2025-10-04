@@ -109,6 +109,14 @@ export default function UserProfilePage() {
     }
   }, [userId]);
 
+  const handlePostUpdate = useCallback((updatedPost: IPost) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === updatedPost._id ? updatedPost : post
+      )
+    );
+  }, []);
+
   // Generate avatar color based on username
   const avatarColor = useMemo(() => {
     if (!profile?.username) return "var(--primary)";
@@ -159,7 +167,7 @@ export default function UserProfilePage() {
         <div className="w-full max-w-4xl space-y-6 !px-2">
           {/* Profile Header - Redesigned with proper spacing */}
           <div
-            className="card !p-0 !overflow-hidden !rounded-tl-none !rounded-tr-none border !border-t-0"
+            className="card !p-0 !overflow-hidden !rounded-4xl !rounded-tl-none !rounded-tr-none border !border-t-0"
             style={{ backgroundColor: "var(--surface)" }}>
             {/* Cover Image */}
             <div
@@ -315,7 +323,7 @@ export default function UserProfilePage() {
                   <Post
                     key={post._id}
                     post={post}
-                    onPostUpdate={() => {}}
+                    onPostUpdate={handlePostUpdate}
                     onPostDelete={() => {}}
                     currentUserId={user?._id}
                   />

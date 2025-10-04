@@ -8,24 +8,6 @@ import { useAuth } from "../../contexts/AuthContext";
 const TopAppBar: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const [navbarVisible, setNavbarVisible] = React.useState<boolean>(false);
-
-  // Dynamically add Tailwind padding when bottom navbar is visible (<601px)
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mql = window.matchMedia("(min-width: 601px)");
-    const update = (matches: boolean) => setNavbarVisible(!matches);
-    update(mql.matches);
-    const handler = (e: MediaQueryListEvent) => update(e.matches);
-    if (typeof mql.addEventListener === "function") {
-      mql.addEventListener("change", handler);
-      return () => mql.removeEventListener("change", handler);
-    } else {
-      // Safari fallback
-      mql.addListener(handler);
-      return () => mql.removeListener(handler);
-    }
-  }, []);
 
   const handleProfileClick = () => {
     if (user?._id) {
@@ -35,19 +17,18 @@ const TopAppBar: React.FC = () => {
   };
 
   return (
-    <header
-      style={{ backgroundColor: "var(--surface)" }}
-      className={navbarVisible ? "!px-2" : "!px-0"}>
+    <header style={{ backgroundColor: "var(--surface)" }} className="!px-2">
       <nav className="transparent !justify-between">
         <img
           src="/full-logo.svg"
           alt="logo"
           width={130}
           height={30}
-          className="!p-2 rounded-lg"
+          className="!p-2"
           style={{
             backgroundColor: "var(--primary-container)",
             cursor: "pointer",
+            borderRadius: "67rem",
           }}
           onClick={() => router.push("/")}
         />

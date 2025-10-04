@@ -196,7 +196,7 @@ const Post: React.FC<PostProps> = ({
   };
 
   return (
-    <article className="border rounded">
+    <article className="border !rounded-4xl">
       <div className="flex items-start justify-between gap-2">
         {/* author profile */}
         <Link href={`/users/${authorId}`} className="flex items-center gap-2">
