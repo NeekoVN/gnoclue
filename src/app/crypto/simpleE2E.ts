@@ -63,7 +63,11 @@ export class SimpleE2EClient {
     const seedBytes = utf8ToBytes(seed);
     
     // Use Web Crypto API for SHA-256 (works in all contexts)
-    const hash = await crypto.subtle.digest('SHA-256', seedBytes);
+    // Convert Uint8Array to ArrayBuffer to ensure compatibility
+    const arrayBuffer = new ArrayBuffer(seedBytes.length);
+    const view = new Uint8Array(arrayBuffer);
+    view.set(seedBytes);
+    const hash = await crypto.subtle.digest('SHA-256', arrayBuffer);
     return new Uint8Array(hash);
   }
 
