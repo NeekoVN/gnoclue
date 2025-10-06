@@ -2,7 +2,11 @@
 const nextConfig = {
   allowedDevOrigins: ["*", "192.168.31.245", "localhost", "127.0.0.1"],
   images: {
-    domains: ["s3.ditmenavi.com"],
+    domains: [
+      "s3.ditmenavi.com",
+      "s3.ditmenavi.com:9000",
+      "gnoclue-api.ditmenavi.com",
+    ],
   },
   async headers() {
     return [
