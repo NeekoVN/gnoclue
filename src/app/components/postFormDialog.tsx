@@ -18,7 +18,9 @@ const PostFormDialog: React.FC = () => {
 
   // Media upload state
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [uploadProgress, setUploadProgress] = useState<{
+    [key: string]: number;
+  }>({});
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,8 +62,8 @@ const PostFormDialog: React.FC = () => {
   // Media upload handlers
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(file => {
-      const isValidType = file.type.startsWith('image/');
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/");
       const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
       return isValidType && isValidSize;
     });
@@ -70,32 +72,37 @@ const PostFormDialog: React.FC = () => {
       setError("Some files were skipped. Only images up to 10MB are allowed.");
     }
 
-    setSelectedFiles(prev => [...prev, ...validFiles]);
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
     setError(null);
   };
 
   const removeFile = (indexToRemove: number) => {
-    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    setSelectedFiles((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
-  const uploadFile = async (file: File, presignedItem: any): Promise<IMediaObject> => {
+  const uploadFile = async (
+    file: File,
+    presignedItem: any
+  ): Promise<IMediaObject> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
-      xhr.upload.addEventListener('progress', (e) => {
+      xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
           const progress = Math.round((e.loaded / e.total) * 100);
-          setUploadProgress(prev => ({
+          setUploadProgress((prev) => ({
             ...prev,
-            [file.name]: progress
+            [file.name]: progress,
           }));
         }
       });
 
-      xhr.addEventListener('load', () => {
+      xhr.addEventListener("load", () => {
         if (xhr.status === 200) {
           const mediaObject: IMediaObject = {
-            type: 'image',
+            type: "image",
             key: presignedItem.key,
             contentType: presignedItem.contentType,
             byteLength: file.size,
@@ -106,12 +113,12 @@ const PostFormDialog: React.FC = () => {
         }
       });
 
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed'));
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed"));
       });
 
-      xhr.open('PUT', presignedItem.putUrl);
-      xhr.setRequestHeader('Content-Type', presignedItem.contentType);
+      xhr.open("PUT", presignedItem.putUrl);
+      xhr.setRequestHeader("Content-Type", presignedItem.contentType);
       xhr.send(file);
     });
   };
@@ -123,7 +130,7 @@ const PostFormDialog: React.FC = () => {
     setSelectedFiles([]);
     setUploadProgress({});
     setError(null);
-    
+
     // Use BeerCSS way to close dialog by triggering the data-ui mechanism
     const cancelButton = document.querySelector(
       '[data-ui="#post-form-dialog"]'
@@ -147,21 +154,21 @@ const PostFormDialog: React.FC = () => {
       // Upload files if any selected
       if (selectedFiles.length > 0) {
         setUploading(true);
-        
+
         // Presign uploads
-        const presignRequests = selectedFiles.map(file => ({
-          type: 'image' as const,
+        const presignRequests = selectedFiles.map((file) => ({
+          type: "image" as const,
           byteLength: file.size,
-          contentType: file.type || 'image/jpeg'
+          contentType: file.type || "image/jpeg",
         }));
 
         const presignResponse = await presignMediaUpload(presignRequests);
-        
+
         // Upload all files in parallel
-        const uploadPromises = selectedFiles.map((file, index) => 
+        const uploadPromises = selectedFiles.map((file, index) =>
           uploadFile(file, presignResponse.items[index])
         );
-        
+
         mediaObjects = await Promise.all(uploadPromises);
         setUploading(false);
       }
@@ -260,7 +267,7 @@ const PostFormDialog: React.FC = () => {
                 </button>
               ))}
             </div>
-            
+
             {/* Selected files display */}
             {selectedFiles.length > 0 && (
               <div className="w-full mb-4">
@@ -270,7 +277,9 @@ const PostFormDialog: React.FC = () => {
                     <div key={idx} className="relative">
                       <div className="chip">
                         <i>image</i>
-                        <span className="truncate max-w-[100px]">{file.name}</span>
+                        <span className="truncate max-w-[100px]">
+                          {file.name}
+                        </span>
                         <button
                           onClick={() => removeFile(idx)}
                           className="ml-1 text-red-500 hover:text-red-700"
@@ -280,8 +289,8 @@ const PostFormDialog: React.FC = () => {
                       </div>
                       {uploadProgress[file.name] !== undefined && (
                         <div className="mt-1">
-                          <progress 
-                            value={uploadProgress[file.name]} 
+                          <progress
+                            value={uploadProgress[file.name]}
                             max="100"
                             className="w-full h-2"
                           />
@@ -309,9 +318,13 @@ const PostFormDialog: React.FC = () => {
               {/* eslint-disable-next-line react/no-unescaped-entities */}
               <label>What's on your mind?</label>
             </div>
-            
+
             <div className="w-full flex gap-2">
-              <button className="fill flex-1" type="button" onClick={() => fileInputRef.current?.click()}>
+              <button
+                className="fill flex-1"
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <i>image</i>
                 <span>Add Images</span>
                 <input
@@ -324,7 +337,7 @@ const PostFormDialog: React.FC = () => {
                 />
               </button>
             </div>
-            
+
             {error && (
               <div className="mb-2 p-2 bg-red-100 text-red-700 rounded">
                 {error}

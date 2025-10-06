@@ -45,7 +45,11 @@ const Post: React.FC<PostProps> = ({
             const url = await getMediaUrl(mediaItem.key);
             urls[mediaItem.key] = url;
           } catch (error) {
-            console.error('Failed to fetch media URL for key:', mediaItem.key, error);
+            console.error(
+              "Failed to fetch media URL for key:",
+              mediaItem.key,
+              error
+            );
           }
         }
         setMediaUrls(urls);
@@ -294,7 +298,7 @@ const Post: React.FC<PostProps> = ({
           {post.media.map((mediaItem, index) => (
             <Image
               key={index}
-              src={mediaUrls[mediaItem.key] || '/default-avatar.png'} // Fallback to default avatar while loading
+              src={mediaUrls[mediaItem.key] || "/default-avatar.png"} // Fallback to default avatar while loading
               alt="Post content"
               width={400}
               height={300}
