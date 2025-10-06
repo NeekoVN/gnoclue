@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { IPost } from "../../types/post";
 import {
@@ -8,6 +8,7 @@ import {
   downvotePost,
   deletePost,
   updatePost,
+  getMediaUrl,
 } from "../../services/post";
 import { calculatePostVoteCount } from "../../utils/voteCalculator";
 import { createOptimisticVoteUpdate } from "../../utils/optimisticVote";
@@ -31,7 +32,28 @@ const Post: React.FC<PostProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
+  const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
   const { socket } = useSocket();
+
+  // Fetch media URLs when component mounts or post changes
+  useEffect(() => {
+    const fetchMediaUrls = async () => {
+      if (post.media && post.media.length > 0) {
+        const urls: { [key: string]: string } = {};
+        for (const mediaItem of post.media) {
+          try {
+            const url = await getMediaUrl(mediaItem.key);
+            urls[mediaItem.key] = url;
+          } catch (error) {
+            console.error('Failed to fetch media URL for key:', mediaItem.key, error);
+          }
+        }
+        setMediaUrls(urls);
+      }
+    };
+
+    fetchMediaUrls();
+  }, [post.media]);
   const handleUpvote = async () => {
     if (!currentUserId) return;
 
@@ -201,8 +223,9 @@ const Post: React.FC<PostProps> = ({
         {/* author profile */}
         <Link href={`/users/${authorId}`} className="flex items-center gap-2">
           <Avatar
+            user={typeof post.userId === "object" ? post.userId : undefined}
             fallbackInitial={username.charAt(0)}
-            size="48px"
+            size="42px"
             backgroundColor={avatarColor}
           />
           <div className="flex flex-col items-start justify-center">
@@ -266,12 +289,12 @@ const Post: React.FC<PostProps> = ({
       )}
 
       {/* images */}
-      {post.images && post.images.length > 0 && (
+      {post.media && post.media.length > 0 && (
         <div className="mt-2">
-          {post.images.map((image, index) => (
+          {post.media.map((mediaItem, index) => (
             <Image
               key={index}
-              src={image}
+              src={mediaUrls[mediaItem.key] || '/default-avatar.png'} // Fallback to default avatar while loading
               alt="Post content"
               width={400}
               height={300}
@@ -308,13 +331,15 @@ const Post: React.FC<PostProps> = ({
         <nav className="group connected primary-container">
           <button
             className={`left-round${hasUpvoted ? " active" : ""}`}
-            onClick={handleUpvote}>
+            onClick={handleUpvote}
+          >
             <i>keyboard_arrow_up</i>
             <span className="font-bold">{voteCount}</span>
           </button>
           <button
             className={`right-round square${hasDownvoted ? " active" : ""}`}
-            onClick={handleDownvote}>
+            onClick={handleDownvote}
+          >
             <i>keyboard_arrow_down</i>
           </button>
         </nav>

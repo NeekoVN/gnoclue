@@ -56,7 +56,7 @@ export const useVoteUpdates = ({ onVoteUpdate, onVoteError }: UseVoteUpdatesProp
             upvotes: Array(voteUpdate.upvotes).fill("user_id"),
             downvotes: Array(voteUpdate.downvotes).fill("user_id"),
             tags: [],
-            images: [],
+            media: [],
             commentCount: 0,
           };
           

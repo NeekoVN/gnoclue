@@ -70,6 +70,70 @@ const Feed: React.FC = () => {
     setTimeout(() => setError(null), 5000);
   }, []);
 
+  // Handle optimistic new post
+  const handleNewPostOptimistic = useCallback((event: CustomEvent) => {
+    const newPost: IPost = event.detail;
+    console.log("Adding optimistic post:", newPost);
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
+  }, []);
+
+  // Handle successful post creation (replace optimistic with real)
+  const handleNewPostCreated = useCallback((event: CustomEvent) => {
+    const {
+      optimisticId,
+      realPost,
+    }: { optimisticId: string; realPost: IPost } = event.detail;
+    console.log(
+      "Replacing optimistic post with real post:",
+      optimisticId,
+      "->",
+      realPost._id
+    );
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => (post._id === optimisticId ? realPost : post))
+    );
+  }, []);
+
+  // Handle post creation error (remove optimistic)
+  const handleNewPostError = useCallback((event: CustomEvent) => {
+    const optimisticId: string = event.detail;
+    console.log("Removing failed optimistic post:", optimisticId);
+    setPosts((prevPosts) =>
+      prevPosts.filter((post) => post._id !== optimisticId)
+    );
+  }, []);
+
+  // Set up event listeners for new posts
+  useEffect(() => {
+    window.addEventListener(
+      "newPostOptimistic",
+      handleNewPostOptimistic as EventListener
+    );
+    window.addEventListener(
+      "newPostCreated",
+      handleNewPostCreated as EventListener
+    );
+    window.addEventListener(
+      "newPostError",
+      handleNewPostError as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "newPostOptimistic",
+        handleNewPostOptimistic as EventListener
+      );
+      window.removeEventListener(
+        "newPostCreated",
+        handleNewPostCreated as EventListener
+      );
+      window.removeEventListener(
+        "newPostError",
+        handleNewPostError as EventListener
+      );
+    };
+  }, [handleNewPostOptimistic, handleNewPostCreated, handleNewPostError]);
+
   // Set up real-time vote updates
   useVoteUpdates({
     onVoteUpdate: handleVoteUpdate,
@@ -130,7 +194,7 @@ const Feed: React.FC = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [token]);
+  }, [token, fetchPosts]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -187,21 +251,24 @@ const Feed: React.FC = () => {
       ref={feedRef}
       className="!w-full !h-full flex justify-center px-4 py-4"
       style={{ boxSizing: "border-box" }}
-      suppressHydrationWarning={true}>
+      suppressHydrationWarning={true}
+    >
       <div
         className="w-full max-w-2xl space-y-4 !pt-4 !px-2"
         style={{
           width: "100%",
           maxWidth: "42rem",
           boxSizing: "border-box",
-        }}>
+        }}
+      >
         {error && (
           <div
             className="center-align p-4 border round"
             style={{
               backgroundColor: "var(--error-container)",
               color: "var(--error)",
-            }}>
+            }}
+          >
             <p className="!m-0">{error}</p>
           </div>
         )}
@@ -215,7 +282,8 @@ const Feed: React.FC = () => {
               style={{
                 backgroundColor: "var(--primary-container)",
                 color: "var(--primary)",
-              }}>
+              }}
+            >
               🔄 Refresh Posts (Debug)
             </button>
           </div>

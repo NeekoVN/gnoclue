@@ -3,11 +3,11 @@ import Image from "next/image";
 import { IUser, IUserPublic } from "../../types/user";
 
 interface AvatarProps {
-  // Optional image source. If not provided, the component will render the fallbackInitial
+  // Optional image source. If not provided, will check user.avatar, then fall back to initials
   src?: string;
   // Fallback initial to render when no image is provided
   fallbackInitial?: string;
-  // Provide a user object to auto-fill initial and title
+  // Provide a user object to auto-fill avatar (user.avatar), initial (user.username), and title
   user?: IUser | IUserPublic;
   // Accessible name/title
   alt?: string;
@@ -36,8 +36,9 @@ interface AvatarProps {
 }
 
 /**
- * Reusable user avatar component that supports image or initial fallback
- * and exposes simple styling props for size, outline, hover and click.
+ * Reusable user avatar component that supports image or initial fallback.
+ * When a user object is provided, it will use the user's avatar field if available,
+ * otherwise falls back to initials. The src prop takes precedence over user.avatar.
  * Now includes badge support for online status and unread message count.
  */
 const Avatar: React.FC<AvatarProps> = ({
@@ -124,6 +125,9 @@ const Avatar: React.FC<AvatarProps> = ({
     "?"
   ).toUpperCase();
 
+  // Use user's avatar if available, otherwise fall back to provided src or initials
+  const resolvedSrc = user?.avatar || src;
+
   const renderBadge = () => {
     if (!badge) return null;
 
@@ -174,11 +178,12 @@ const Avatar: React.FC<AvatarProps> = ({
       style={outerStyle}
       className={interactiveClasses}
       onClick={onClick}
-      title={resolvedAlt}>
+      title={resolvedAlt}
+    >
       <div style={contentStyle}>
-        {src ? (
+        {resolvedSrc ? (
           <Image
-            src={src}
+            src={resolvedSrc}
             alt={resolvedAlt}
             fill
             sizes="42px"
@@ -191,7 +196,8 @@ const Avatar: React.FC<AvatarProps> = ({
               fontWeight: "bold",
               fontSize: computeFontSizeFromSize(size),
             }}
-            title={resolvedAlt}>
+            title={resolvedAlt}
+          >
             {resolvedInitial}
           </span>
         )}

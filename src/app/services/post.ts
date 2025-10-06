@@ -1,8 +1,24 @@
 import axios from "axios";
-import { IPost, IPostsResponse } from "../types/post";
+import { IPost, IPostsResponse, IMediaObject } from "../types/post";
 import { API_BASE_URL } from "../config/api";
 
 const BASE_URL = `${API_BASE_URL}/posts`;
+
+// Media upload interfaces
+export interface IPresignFileRequest {
+  type: 'image' | 'video' | 'audio' | 'document';
+  byteLength: number;
+  contentType: string;
+}
+
+export interface IPresignResponse {
+  items: Array<{
+    type: string;
+    key: string;
+    putUrl: string;
+    contentType: string;
+  }>;
+}
 
 // Get auth token for requests
 const getAuthToken = () => {
@@ -37,16 +53,23 @@ const createAuthAxios = () => {
   return instance;
 };
 
+// Presign media uploads
+export const presignMediaUpload = async (files: IPresignFileRequest[]): Promise<IPresignResponse> => {
+  const axiosInstance = createAuthAxios();
+  const response = await axiosInstance.post<IPresignResponse>('/media/presign', { files });
+  return response.data;
+};
+
 export interface ICreatePostRequest {
   content: string;
   tags?: string[];
-  images?: string[];
+  media?: IMediaObject[];
 }
 
 export interface IUpdatePostRequest {
   content?: string;
   tags?: string[];
-  images?: string[];
+  media?: IMediaObject[];
 }
 
 // Get all posts (paginated)
@@ -81,6 +104,13 @@ export const updatePost = async (postId: string, postData: IUpdatePostRequest): 
 export const deletePost = async (postId: string): Promise<void> => {
   const axiosInstance = createAuthAxios();
   await axiosInstance.delete(`/${postId}`);
+};
+
+// Get media display URL
+export const getMediaUrl = async (key: string): Promise<string> => {
+  const axiosInstance = createAuthAxios();
+  const response = await axiosInstance.get<{ getUrl: string }>(`/media/url?key=${encodeURIComponent(key)}`);
+  return response.data.getUrl;
 };
 
 // Like/upvote a post

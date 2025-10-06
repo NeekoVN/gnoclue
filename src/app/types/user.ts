@@ -8,6 +8,7 @@ export interface IUser {
     _id: string; // MongoDB ObjectId is always returned as a string in JSON
     username: string;
     email: string; // If your API allows exposing email in profile or public views
+    avatar?: string; // URL to user's avatar image in S3 bucket
     // Add other non-sensitive fields that your API might return for a user
     following?: string[]; // Array of User IDs (strings)
     followers?: string[]; // Array of User IDs (strings)
@@ -19,6 +20,7 @@ export interface IUser {
 export interface IUserPublic {
     _id: string;
     username: string;
+    avatar?: string; // URL to user's avatar image in S3 bucket
     followers: string[]; // Array of User IDs (ObjectIds)
     following: string[]; // Array of User IDs (ObjectIds)
     createdAt: string;
