@@ -655,7 +655,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
             maxWidth: "none",
             minWidth: "0",
           }),
-        }}>
+        }}
+      >
         <ParticipantsList
           conversations={conversations}
           activeId={activeId}
@@ -666,6 +667,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
           onlineUsers={onlineUsers}
           currentUserId={user?._id}
           participantsByConversation={conversationParticipants}
+          participantUsers={participantUsers}
         />
 
         {/* Right Side - Chat Interface */}
@@ -676,6 +678,9 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
             getConversationName={getConversationName}
             getConversationInitial={getConversationInitial}
             getAvatarColor={getAvatarColor}
+            participantUsers={participantUsers}
+            currentUserId={user?._id}
+            conversationParticipants={conversationParticipants}
           />
 
           {/* Middle Part - Chat Messages */}
@@ -696,7 +701,8 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
                 display: "flex",
                 justifyContent: "center",
                 zIndex: 50,
-              }}>
+              }}
+            >
               <div className="pointer-events-auto">
                 <TypingIndicator typingUsers={typingUsers} />
               </div>

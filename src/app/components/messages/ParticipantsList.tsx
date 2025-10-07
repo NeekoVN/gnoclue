@@ -2,6 +2,7 @@
 
 import React from "react";
 import { IConversation } from "../../types/messaging";
+import { IUserPublic } from "../../types/user";
 import Avatar from "../common/avatar";
 
 interface ParticipantsListProps {
@@ -15,6 +16,7 @@ interface ParticipantsListProps {
   onlineUsers?: Set<string>; // Set of online user IDs
   currentUserId?: string; // Exclude self from presence calculation
   participantsByConversation?: Record<string, Array<{ userId: string }>>; // Optional fallback
+  participantUsers?: Record<string, IUserPublic>; // User data for avatars
 }
 
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
@@ -26,7 +28,25 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
   onlineUsers = new Set(),
   currentUserId,
   participantsByConversation = {},
+  participantUsers = {},
 }) => {
+  // Get the user object for a conversation (for direct chats)
+  const getConversationUser = (
+    conversation: IConversation
+  ): IUserPublic | undefined => {
+    if (conversation.type === "direct" && currentUserId) {
+      const participants = participantsByConversation[conversation._id];
+      if (participants && participants.length > 0) {
+        const otherParticipant = participants.find(
+          (participant) => participant.userId !== currentUserId
+        );
+        if (otherParticipant) {
+          return participantUsers[otherParticipant.userId];
+        }
+      }
+    }
+    return undefined;
+  };
   const getBadgeForConversation = (conversation: IConversation) => {
     // Priority 1: Check for unread count first (highest priority)
     const unreadCount = unreadCounts[conversation._id];
@@ -83,7 +103,8 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
         borderBottomLeftRadius: "0.75rem",
         borderTopRightRadius: "0",
         borderBottomRightRadius: "0",
-      }}>
+      }}
+    >
       <div className="flex-1 flex flex-col items-center !py-4 !pt-3 !space-y-3 overflow-y-auto">
         {(Array.isArray(conversations) ? conversations : []).map(
           (conversation) => {
@@ -94,15 +115,28 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
 
             const badge = getBadgeForConversation(conversation);
 
+            const conversationUser = getConversationUser(conversation);
+
             return (
               <Avatar
                 key={conversation._id}
-                fallbackInitial={getConversationInitial(conversation) || "?"}
+                user={conversationUser}
+                fallbackInitial={
+                  conversationUser
+                    ? undefined
+                    : getConversationInitial(conversation) || "?"
+                }
                 size="38px"
-                backgroundColor={getAvatarColor(conversation)}
+                backgroundColor={
+                  conversationUser ? undefined : getAvatarColor(conversation)
+                }
                 hover
                 onClick={() => onSelect(conversation._id)}
-                alt={conversation.name || conversation._id}
+                alt={
+                  conversationUser
+                    ? conversationUser.username
+                    : conversation.name || conversation._id
+                }
                 badge={badge}
               />
             );
