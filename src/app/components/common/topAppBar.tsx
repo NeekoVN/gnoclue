@@ -1,19 +1,30 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
+import Avatar from "./avatar";
 
 const TopAppBar: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleAvatarClick = () => {
+    setShowMenu(!showMenu);
+  };
 
   const handleProfileClick = () => {
     if (user?._id) {
-      console.log("Navigating to user profile...");
       router.push(`/users/${user._id}`);
     }
+    setShowMenu(false);
+  };
+
+  const handleSettingsClick = () => {
+    router.push("/settings");
+    setShowMenu(false);
   };
 
   return (
@@ -34,7 +45,8 @@ const TopAppBar: React.FC = () => {
         />
         <div
           className="field center-align max medium prefix round fill active min-w-[200px] max-w-[600px] w-full"
-          data-ui="#search">
+          data-ui="#search"
+        >
           <i className="front">search</i>
           <input placeholder="Search" />
           <menu className="min !rounded-3xl" id="search">
@@ -59,19 +71,32 @@ const TopAppBar: React.FC = () => {
           </menu>
         </div>
 
-        <button
-          className="large primary center-align"
-          onClick={handleProfileClick}
-          style={{ backgroundColor: "var(--primary-container)" }}>
-          <span
-            style={{
-              color: "var(--on-primary)",
-              fontWeight: "bold",
-              fontSize: "1.2rem",
-            }}>
-            {user?.username?.charAt(0).toUpperCase() || "U"}
-          </span>
-        </button>
+        <nav className={`min ${showMenu ? "active" : ""}`}>
+          <Avatar
+            user={user || undefined}
+            size="2.5rem"
+            onClick={handleAvatarClick}
+            className="extra circle"
+          />
+          <menu
+            className={`bottom transparent no-wrap left right-align ${
+              showMenu ? "active" : ""
+            }`}
+          >
+            <li>
+              <button className="fill" onClick={handleProfileClick}>
+                <i>person</i>
+                <span>Profile</span>
+              </button>
+            </li>
+            <li>
+              <button className="fill" onClick={handleSettingsClick}>
+                <i>settings</i>
+                <span>Settings</span>
+              </button>
+            </li>
+          </menu>
+        </nav>
       </nav>
     </header>
   );

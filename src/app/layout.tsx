@@ -50,7 +50,8 @@ export default function RootLayout({
       <head></head>
       <body
         className="!m-0 !p-0 h-dvh !w-full light !overflow-hidden"
-        suppressHydrationWarning={true}>
+        suppressHydrationWarning={true}
+      >
         <AuthProvider>
           <SocketProvider>
             <AuthGuard>
@@ -63,17 +64,20 @@ export default function RootLayout({
                     <div
                       className={`!flex !h-full !w-full !gap-2 !p-2 !pt-0 ${
                         navbarHidden ? "!pl-0" : ""
-                      }`}>
+                      }`}
+                    >
                       <div className="!flex-1 !min-w-0 !h-full">
                         <div className="!h-full !overflow-hidden">
                           {children}
                         </div>
                       </div>
-                      {!asAuthPage && pathname !== "/messages" && (
-                        <div className="hidden xl:!flex !shrink-0 !h-full">
-                          <MessagePanel />
-                        </div>
-                      )}
+                      {!asAuthPage &&
+                        pathname !== "/messages" &&
+                        pathname !== "/settings" && (
+                          <div className="hidden xl:!flex !shrink-0 !h-full">
+                            <MessagePanel />
+                          </div>
+                        )}
                     </div>
                   </div>
                   {!asAuthPage && (
