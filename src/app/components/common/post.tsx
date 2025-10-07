@@ -330,13 +330,14 @@ const Post: React.FC<PostProps> = ({
       {/* images */}
       {mediaWithUrls.length > 0 && (
         <div className="!mt-2">
-          {/* 1 image: maintain aspect ratio if within 1:3 to 3:1 range */}
+          {/* 1 image: maintain aspect ratio if within 1:3 to 3:1 range, but height not taller than 1:1 */}
           {mediaWithUrls.length === 1 &&
             (() => {
               const aspectRatio = mediaWithUrls[0].aspectRatio || 1;
               // Check if aspect ratio is within acceptable range (1:3 to 3:1)
+              // But ensure height is not taller than 1:1 (aspect ratio >= 1)
               const isWithinRange = aspectRatio >= 1 / 3 && aspectRatio <= 3;
-              const finalAspectRatio = isWithinRange ? aspectRatio : 1;
+              const finalAspectRatio = isWithinRange ? Math.max(aspectRatio, 1) : 1;
 
               return (
                 <div
