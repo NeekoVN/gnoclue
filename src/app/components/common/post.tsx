@@ -24,6 +24,14 @@ interface PostProps {
   currentUserId?: string;
 }
 
+interface MediaWithDimensions {
+  url: string;
+  key: string;
+  width?: number;
+  height?: number;
+  aspectRatio?: number;
+}
+
 const Post: React.FC<PostProps> = ({
   post,
   onPostUpdate,
@@ -32,18 +40,44 @@ const Post: React.FC<PostProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
-  const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
+  const [mediaWithUrls, setMediaWithUrls] = useState<MediaWithDimensions[]>([]);
   const { socket } = useSocket();
 
-  // Fetch media URLs when component mounts or post changes
+  // Fetch media URLs and load image dimensions
   useEffect(() => {
     const fetchMediaUrls = async () => {
       if (post.media && post.media.length > 0) {
-        const urls: { [key: string]: string } = {};
+        const mediaData: MediaWithDimensions[] = [];
+
         for (const mediaItem of post.media) {
           try {
             const url = await getMediaUrl(mediaItem.key);
-            urls[mediaItem.key] = url;
+
+            // Load image to get dimensions
+            const img = document.createElement("img");
+            img.src = url;
+
+            await new Promise<void>((resolve) => {
+              img.onload = () => {
+                const aspectRatio = img.naturalWidth / img.naturalHeight;
+                mediaData.push({
+                  url,
+                  key: mediaItem.key,
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                  aspectRatio,
+                });
+                resolve();
+              };
+              img.onerror = () => {
+                // If image fails to load, still add it without dimensions
+                mediaData.push({
+                  url,
+                  key: mediaItem.key,
+                });
+                resolve();
+              };
+            });
           } catch (error) {
             console.error(
               "Failed to fetch media URL for key:",
@@ -52,7 +86,8 @@ const Post: React.FC<PostProps> = ({
             );
           }
         }
-        setMediaUrls(urls);
+
+        setMediaWithUrls(mediaData);
       }
     };
 
@@ -293,18 +328,205 @@ const Post: React.FC<PostProps> = ({
       )}
 
       {/* images */}
-      {post.media && post.media.length > 0 && (
-        <div className="mt-2">
-          {post.media.map((mediaItem, index) => (
-            <Image
-              key={index}
-              src={mediaUrls[mediaItem.key] || "/default-avatar.png"} // Fallback to default avatar while loading
-              alt="Post content"
-              width={400}
-              height={300}
-              className="w-full h-auto rounded mb-2"
-            />
-          ))}
+      {mediaWithUrls.length > 0 && (
+        <div className="!mt-2">
+          {/* 1 image: maintain aspect ratio if within 1:3 to 3:1 range */}
+          {mediaWithUrls.length === 1 &&
+            (() => {
+              const aspectRatio = mediaWithUrls[0].aspectRatio || 1;
+              // Check if aspect ratio is within acceptable range (1:3 to 3:1)
+              const isWithinRange = aspectRatio >= 1 / 3 && aspectRatio <= 3;
+              const finalAspectRatio = isWithinRange ? aspectRatio : 1;
+
+              return (
+                <div
+                  className="relative w-full"
+                  style={{ aspectRatio: finalAspectRatio.toString() }}
+                >
+                  <Image
+                    src={mediaWithUrls[0].url}
+                    alt="Post content"
+                    fill
+                    className="object-cover rounded"
+                    sizes="(max-width: 768px) 100vw, 672px"
+                  />
+                </div>
+              );
+            })()}
+
+          {/* 2 images: 2x1 grid */}
+          {mediaWithUrls.length === 2 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "inherit",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "inherit",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 3 images: 2x2 grid with 3rd taking bottom row */}
+          {mediaWithUrls.length === 3 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.slice(0, 2).map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
+              <div
+                className="relative w-full col-span-2"
+                style={{ aspectRatio: "2 / 1" }}
+              >
+                <Image
+                  src={mediaWithUrls[2].url}
+                  alt="Post content 3"
+                  fill
+                  className="object-cover"
+                  style={{
+                    borderTopLeftRadius: "0.375rem",
+                    borderTopRightRadius: "0.375rem",
+                    borderBottomRightRadius: "inherit",
+                    borderBottomLeftRadius: "inherit",
+                  }}
+                  sizes="(max-width: 768px) 100vw, 672px"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 4+ images: 2x2 grid with overlay on last image */}
+          {mediaWithUrls.length >= 4 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.slice(0, 3).map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : index === 1
+                        ? {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "inherit",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
+              <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+                <Image
+                  src={mediaWithUrls[3].url}
+                  alt="Post content 4"
+                  fill
+                  className="object-cover"
+                  style={{
+                    borderTopLeftRadius: "0.375rem",
+                    borderTopRightRadius: "0.375rem",
+                    borderBottomRightRadius: "inherit",
+                    borderBottomLeftRadius: "0.375rem",
+                  }}
+                  sizes="(max-width: 768px) 50vw, 336px"
+                />
+                {mediaWithUrls.length > 4 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderTopLeftRadius: "0.375rem",
+                      borderTopRightRadius: "0.375rem",
+                      borderBottomRightRadius: "inherit",
+                      borderBottomLeftRadius: "0.375rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "2rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      +{mediaWithUrls.length - 4}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -327,7 +549,7 @@ const Post: React.FC<PostProps> = ({
           </div>
         </div>
       ) : (
-        <p className="mt-2 whitespace-pre-wrap">{post.content}</p>
+        <p className="!mt-2 whitespace-pre-wrap">{post.content}</p>
       )}
 
       {/* upvote/downvote, comment, share */}

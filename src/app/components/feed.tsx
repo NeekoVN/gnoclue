@@ -198,9 +198,13 @@ const Feed: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!feedRef.current || loadingMore || !hasMore) return;
+      if (loadingMore || !hasMore) return;
 
-      const { scrollTop, scrollHeight, clientHeight } = feedRef.current;
+      // Find the scrolling container - it's the parent element with overflow-y-auto
+      const scrollContainer = feedRef.current?.parentElement;
+      if (!scrollContainer) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 200;
 
       if (isNearBottom) {
@@ -209,10 +213,11 @@ const Feed: React.FC = () => {
       }
     };
 
-    const feedElement = feedRef.current;
-    if (feedElement) {
-      feedElement.addEventListener("scroll", handleScroll);
-      return () => feedElement.removeEventListener("scroll", handleScroll);
+    // Attach scroll event to the parent element (the actual scrolling container)
+    const scrollContainer = feedRef.current?.parentElement;
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll);
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
     }
   }, [page, loadingMore, hasMore, fetchPosts]);
 
