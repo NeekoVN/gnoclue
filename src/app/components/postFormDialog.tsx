@@ -246,7 +246,7 @@ const PostFormDialog: React.FC = () => {
       >
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col h-full justify-between"
+          className="flex flex-col !h-full justify-between"
         >
           <div>
             <h6 className="center-align">Create a post</h6>
