@@ -7,7 +7,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import Avatar from "./avatar";
 
 const TopAppBar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -24,6 +24,15 @@ const TopAppBar: React.FC = () => {
 
   const handleSettingsClick = () => {
     router.push("/settings");
+    setShowMenu(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.warn("Sign out encountered an error", e);
+    }
     setShowMenu(false);
   };
 
@@ -93,6 +102,12 @@ const TopAppBar: React.FC = () => {
               <button className="fill" onClick={handleSettingsClick}>
                 <i>settings</i>
                 <span>Settings</span>
+              </button>
+            </li>
+            <li className="block md:hidden">
+              <button className="fill" onClick={handleSignOut}>
+                <i>logout</i>
+                <span>Sign out</span>
               </button>
             </li>
           </menu>
