@@ -337,7 +337,9 @@ const Post: React.FC<PostProps> = ({
               // Check if aspect ratio is within acceptable range (1:3 to 3:1)
               // But ensure height is not taller than 1:1 (aspect ratio >= 1)
               const isWithinRange = aspectRatio >= 1 / 3 && aspectRatio <= 3;
-              const finalAspectRatio = isWithinRange ? Math.max(aspectRatio, 1) : 1;
+              const finalAspectRatio = isWithinRange
+                ? Math.max(aspectRatio, 1)
+                : 1;
 
               return (
                 <div
