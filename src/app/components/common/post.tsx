@@ -573,8 +573,13 @@ const Post: React.FC<PostProps> = ({
           </button>
         </nav>
         <button className="fill">
-          <i>comment</i>
-          <span>{commentCount}</span>
+          <i style={{ color: "var(--on-primary-container)" }}>comment</i>
+          <span
+            className="font-bold"
+            style={{ color: "var(--on-primary-container)" }}
+          >
+            {commentCount}
+          </span>
         </button>
         {/* <button className="fill">
           <i>share</i>

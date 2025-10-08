@@ -240,7 +240,7 @@ const PostFormDialog: React.FC = () => {
       <div className="overlay blur"></div>
       <dialog
         id="post-form-dialog"
-        className="!px-0 !w-[90%] !max-w-[700px] !max-h-[50vh] !h-full !flex !flex-col !justify-between border"
+        className="!px-0 !w-[90%] !max-w-[700px] !max-h-[50vh] !h-fit !flex !flex-col !justify-between border"
         style={{ backgroundColor: "var(--surface)" }}
         suppressHydrationWarning={true}
       >
