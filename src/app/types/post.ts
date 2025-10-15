@@ -22,6 +22,13 @@ export interface IPost {
     algorithmScore?: number;
     createdAt: string;
     updatedAt: string;
+    // Recommendation-specific fields (when coming from personalized feed)
+    item_id?: string;
+    score?: number;
+    reason?: string;
+    rec_score?: number;
+    rec_reason?: string;
+    diagnostics?: Record<string, unknown>;
 }
 
 export interface IPostsResponse {
@@ -30,4 +37,10 @@ export interface IPostsResponse {
     totalPages: number;
     hasMore: boolean;
     totalPosts: number;
+    // Recommendation metadata (when using personalized feed)
+    isPersonalized?: boolean;
+    total_candidates?: number;
+    persona_used?: string;
+    processing_time_ms?: number;
+    cache_hit?: boolean;
 }

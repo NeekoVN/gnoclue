@@ -3,6 +3,7 @@ import { IPost, IPostsResponse, IMediaObject } from "../types/post";
 import { API_BASE_URL } from "../config/api";
 
 const BASE_URL = `${API_BASE_URL}/posts`;
+const RECOMMENDATIONS_URL = `${API_BASE_URL}/recommendations`;
 
 // Media upload interfaces
 export interface IPresignFileRequest {
@@ -72,11 +73,52 @@ export interface IUpdatePostRequest {
   media?: IMediaObject[];
 }
 
-// Get all posts (paginated)
-export const getPosts = async (page: number = 1, limit: number = 10): Promise<IPostsResponse> => {
+// Get all posts (paginated) - Original implementation
+export const getAllPosts = async (page: number = 1, limit: number = 10): Promise<IPostsResponse> => {
   const axiosInstance = createAuthAxios();
   const response = await axiosInstance.get<IPostsResponse>(`?page=${page}&limit=${limit}`);
   return response.data;
+};
+
+// Get personalized recommendation feed (NEW: Uses ML recommendations)
+export const getPersonalizedFeed = async (page: number = 1, limit: number = 10): Promise<IPostsResponse> => {
+  const token = getAuthToken();
+  const axiosInstance = axios.create({
+    baseURL: RECOMMENDATIONS_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  // Add the same response interceptor for auth errors
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        if (typeof window !== "undefined" && window.location.pathname !== "/signin") {
+          window.location.href = "/signin";
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  const response = await axiosInstance.get<IPostsResponse>(`/feed?page=${page}&limit=${limit}`);
+  return response.data;
+};
+
+// Main posts function - now uses personalized recommendations by default
+export const getPosts = async (page: number = 1, limit: number = 10, usePersonalized: boolean = true): Promise<IPostsResponse> => {
+  if (usePersonalized) {
+    try {
+      return await getPersonalizedFeed(page, limit);
+    } catch (error) {
+      console.warn('Failed to get personalized feed, falling back to all posts:', error);
+      return await getAllPosts(page, limit);
+    }
+  }
+  return await getAllPosts(page, limit);
 };
 
 // Get a single post by ID
@@ -97,6 +139,29 @@ export const createPost = async (postData: ICreatePostRequest): Promise<IPost> =
 export const updatePost = async (postId: string, postData: IUpdatePostRequest): Promise<IPost> => {
   const axiosInstance = createAuthAxios();
   const response = await axiosInstance.put<IPost>(`/${postId}`, postData);
+  return response.data;
+};
+
+// Send interaction event to recommendation engine for better personalization
+export const sendInteractionEvent = async (
+  postId: string, 
+  eventType: 'view' | 'upvote' | 'downvote' | 'comment' | 'share' | 'save',
+  metadata?: Record<string, unknown>
+): Promise<{ success: boolean; message: string }> => {
+  const token = getAuthToken();
+  const axiosInstance = axios.create({
+    baseURL: RECOMMENDATIONS_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const response = await axiosInstance.post('/events', {
+    post_id: postId,
+    event_type: eventType,
+    metadata: metadata || {}
+  });
+
   return response.data;
 };
 

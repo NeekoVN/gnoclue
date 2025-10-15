@@ -15,6 +15,11 @@ const Feed: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [feedMetadata, setFeedMetadata] = useState<{
+    isPersonalized?: boolean;
+    processing_time_ms?: number;
+    total_candidates?: number;
+  }>({});
   const { token, user } = useAuth();
   const feedRef = React.useRef<HTMLDivElement>(null);
 
@@ -151,6 +156,13 @@ const Feed: React.FC = () => {
         setError(null);
 
         const response = await getPosts(pageNum, 10);
+
+        // Update feed metadata for personalization indicators
+        setFeedMetadata({
+          isPersonalized: response.isPersonalized,
+          processing_time_ms: response.processing_time_ms,
+          total_candidates: response.total_candidates,
+        });
 
         if (append) {
           setPosts((prev) => {
@@ -301,6 +313,19 @@ const Feed: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Personalization indicator */}
+            {feedMetadata.isPersonalized && posts.length > 0 && (
+              <div className="flex items-center justify-center mb-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm rounded-lg shadow-sm">
+                <span className="mr-2">✨</span>
+                Personalized for you
+                {feedMetadata.processing_time_ms && (
+                  <span className="ml-2 text-xs opacity-80">
+                    ({feedMetadata.processing_time_ms}ms)
+                  </span>
+                )}
+              </div>
+            )}
+            
             {posts.map((post) => (
               <Post
                 key={post._id}
