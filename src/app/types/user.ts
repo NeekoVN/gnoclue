@@ -9,9 +9,11 @@ export interface IUser {
     username: string;
     email: string; // If your API allows exposing email in profile or public views
     avatar?: string; // URL to user's avatar image in S3 bucket
+    role?: 'user' | 'admin'; // User role (admin has special privileges)
     // Add other non-sensitive fields that your API might return for a user
     following?: string[]; // Array of User IDs (strings)
     followers?: string[]; // Array of User IDs (strings)
+    isDeleted?: boolean; // Soft delete flag
     createdAt: string; // Dates are returned as ISO 8601 strings
     updatedAt: string; // Dates are returned as ISO 8601 strings
 }

@@ -11,7 +11,7 @@ export interface IMediaObject {
 
 export interface IPost {
     _id: string;
-    userId: string | IUser; // Could be just ID (string) or populated User object (IUser)
+    userId: string | IUser | null; // Could be just ID (string), populated User object (IUser), or null if user was deleted
     content: string;
     media?: IMediaObject[];
     tags?: string[];
@@ -20,6 +20,7 @@ export interface IPost {
     downvotes?: string[];
     commentCount?: number;
     algorithmScore?: number;
+    isDeleted?: boolean; // Soft delete flag
     createdAt: string;
     updatedAt: string;
     // Recommendation-specific fields (when coming from personalized feed)

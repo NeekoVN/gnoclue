@@ -196,7 +196,9 @@ const Post: React.FC<PostProps> = ({
   };
 
   const isAuthor =
-    typeof post.userId === "string"
+    !post.userId
+      ? false
+      : typeof post.userId === "string"
       ? post.userId === currentUserId
       : post.userId._id === currentUserId;
 
@@ -220,12 +222,18 @@ const Post: React.FC<PostProps> = ({
 
   // Get username from post data
   const username =
-    typeof post.userId === "string"
+    !post.userId
+      ? "Deleted User"
+      : typeof post.userId === "string"
       ? "Unknown User"
       : post.userId.username || "Unknown User";
 
   const authorId =
-    typeof post.userId === "string" ? post.userId : post.userId._id;
+    !post.userId
+      ? null
+      : typeof post.userId === "string"
+      ? post.userId
+      : post.userId._id;
 
   // Generate avatar color based on username
   const avatarColor = (() => {
@@ -262,7 +270,7 @@ const Post: React.FC<PostProps> = ({
         {/* author profile */}
         <Link href={`/users/${authorId}`} className="flex items-center gap-2">
           <Avatar
-            user={typeof post.userId === "object" ? post.userId : undefined}
+            user={typeof post.userId === "object" && post.userId !== null ? post.userId : undefined}
             fallbackInitial={username.charAt(0)}
             size="42px"
             backgroundColor={avatarColor}
