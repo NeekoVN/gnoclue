@@ -1,7 +1,7 @@
 // src/services/comment.ts
 import { IComment, ICommentsResponse } from '../types/comment';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {

@@ -1,7 +1,7 @@
 // src/services/report.ts
 import { IReport, IReportWithDetails, IReportsResponse, ReportEntityType, ReportReason } from '../types/report';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {

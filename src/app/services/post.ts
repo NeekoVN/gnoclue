@@ -124,6 +124,8 @@ export const getPosts = async (page: number = 1, limit: number = 10, usePersonal
 // Get a single post by ID
 export const getPost = async (postId: string): Promise<IPost> => {
   const axiosInstance = createAuthAxios();
+  console.log('Fetching post with ID:', postId);
+  console.log('Request URL:', `${BASE_URL}/${postId}`);
   const response = await axiosInstance.get<IPost>(`/${postId}`);
   return response.data;
 };

@@ -13,6 +13,7 @@ import {
 import { calculatePostVoteCount } from "../../utils/voteCalculator";
 import { createOptimisticVoteUpdate } from "../../utils/optimisticVote";
 import { useSocket } from "../../contexts/SocketContext";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Avatar from "./avatar";
@@ -42,6 +43,7 @@ const Post: React.FC<PostProps> = ({
   const [editContent, setEditContent] = useState(post.content);
   const [mediaWithUrls, setMediaWithUrls] = useState<MediaWithDimensions[]>([]);
   const { socket } = useSocket();
+  const router = useRouter();
 
   // Fetch media URLs and load image dimensions
   useEffect(() => {
@@ -560,7 +562,12 @@ const Post: React.FC<PostProps> = ({
           </div>
         </div>
       ) : (
-        <p className="!mt-2 whitespace-pre-wrap">{post.content}</p>
+        <p
+          className="!mt-2 whitespace-pre-wrap cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => router.push(`/posts/${post._id}`)}
+        >
+          {post.content}
+        </p>
       )}
 
       {/* upvote/downvote, comment, share */}
@@ -580,7 +587,10 @@ const Post: React.FC<PostProps> = ({
             <i>keyboard_arrow_down</i>
           </button>
         </nav>
-        <button className="fill">
+        <button
+          className="fill"
+          onClick={() => router.push(`/posts/${post._id}`)}
+        >
           <i style={{ color: "var(--on-primary-container)" }}>comment</i>
           <span
             className="font-bold"
