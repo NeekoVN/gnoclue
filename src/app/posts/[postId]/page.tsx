@@ -12,6 +12,7 @@ import {
 } from "../../services/comment";
 import PostDetails from "../../components/common/postDetails";
 import Comment from "../../components/common/comment";
+import ReportDialog from "../../components/common/reportDialog";
 
 export default function PostDetailsPage() {
   const params = useParams();
@@ -27,6 +28,7 @@ export default function PostDetailsPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   // Fetch post and comments
   const fetchPostData = useCallback(async () => {
@@ -271,7 +273,7 @@ export default function PostDetailsPage() {
                 </>
               )}
               <li>
-                <button className="fill">
+                <button className="fill" onClick={() => setShowReportDialog(true)}>
                   <i>report</i>
                   <span>Report</span>
                 </button>
@@ -434,6 +436,18 @@ export default function PostDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Report Dialog */}
+      {showReportDialog && (
+        <ReportDialog
+          entityType="post"
+          entityId={postId}
+          onClose={() => setShowReportDialog(false)}
+          onSuccess={() => {
+            alert("Report submitted successfully. Thank you for helping keep our community safe.");
+          }}
+        />
+      )}
     </aside>
   );
 }

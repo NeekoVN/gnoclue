@@ -10,6 +10,7 @@ import {
 } from "../../services/comment";
 import Avatar from "./avatar";
 import Link from "next/link";
+import ReportDialog from "./reportDialog";
 
 interface CommentProps {
   comment: IComment;
@@ -30,6 +31,7 @@ const Comment: React.FC<CommentProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const handleUpvote = async () => {
     if (!currentUserId) return;
@@ -212,7 +214,7 @@ const Comment: React.FC<CommentProps> = ({
                 </>
               )}
               <li>
-                <button className="fill">
+                <button className="fill" onClick={() => setShowReportDialog(true)}>
                   <i>report</i>
                   <span>Report</span>
                 </button>
@@ -278,6 +280,18 @@ const Comment: React.FC<CommentProps> = ({
           </button>
         )}
       </div>
+
+      {/* Report Dialog */}
+      {showReportDialog && (
+        <ReportDialog
+          entityType="comment"
+          entityId={comment._id}
+          onClose={() => setShowReportDialog(false)}
+          onSuccess={() => {
+            alert("Report submitted successfully. Thank you for helping keep our community safe.");
+          }}
+        />
+      )}
     </div>
   );
 };

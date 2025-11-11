@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Avatar from "./avatar";
+import ReportDialog from "./reportDialog";
 
 interface PostProps {
   post: IPost;
@@ -42,6 +43,7 @@ const Post: React.FC<PostProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [mediaWithUrls, setMediaWithUrls] = useState<MediaWithDimensions[]>([]);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const { socket } = useSocket();
   const router = useRouter();
 
@@ -308,7 +310,7 @@ const Post: React.FC<PostProps> = ({
                 </>
               )}
               <li>
-                <button className="fill">
+                <button className="fill" onClick={() => setShowReportDialog(true)}>
                   <i>report</i>
                   <span>Report</span>
                 </button>
@@ -604,6 +606,18 @@ const Post: React.FC<PostProps> = ({
           <span>Share</span>
         </button> */}
       </div>
+
+      {/* Report Dialog */}
+      {showReportDialog && (
+        <ReportDialog
+          entityType="post"
+          entityId={post._id}
+          onClose={() => setShowReportDialog(false)}
+          onSuccess={() => {
+            alert("Report submitted successfully. Thank you for helping keep our community safe.");
+          }}
+        />
+      )}
     </article>
   );
 };

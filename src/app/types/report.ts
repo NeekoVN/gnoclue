@@ -9,9 +9,9 @@ export type ReportReason =
     | 'spam'
     | 'harassment'
     | 'hate_speech'
+    | 'violence'
+    | 'sexual_content'
     | 'misinformation'
-    | 'inappropriate_content'
-    | 'copyright'
     | 'other';
 
 export type ReportStatus = 'pending' | 'reviewing' | 'resolved' | 'dismissed';
