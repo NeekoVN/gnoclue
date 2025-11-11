@@ -21,6 +21,7 @@ interface PostDetailsProps {
   onPostUpdate?: (updatedPost: IPost) => void;
   onPostDelete?: (postId: string) => void;
   currentUserId?: string;
+  hideMenu?: boolean;
 }
 
 interface MediaWithDimensions {
@@ -36,6 +37,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({
   onPostUpdate,
   onPostDelete,
   currentUserId,
+  hideMenu = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
@@ -242,7 +244,7 @@ const PostDetails: React.FC<PostDetailsProps> = ({
   };
 
   return (
-    <article className="border !rounded-4xl">
+    <article className={hideMenu ? "" : "border !rounded-4xl"} style={{backgroundColor: "transparent", boxShadow: "none"}}>
       <div className="flex items-start justify-between gap-2">
         {/* author profile */}
         <Link href={`/users/${authorId}`} className="flex items-center gap-2">
@@ -264,43 +266,45 @@ const PostDetails: React.FC<PostDetailsProps> = ({
           </div>
         </Link>
         {/* post actions menu */}
-        <div>
-          <nav className="min active">
-            <button className="border circle">
-              <i>more_horiz</i>
-            </button>
-            <menu className="bottom transparent no-wrap left right-align">
-              {isAuthor && (
-                <>
-                  <li>
-                    <button className="fill" onClick={handleEdit}>
-                      <i>edit</i>
-                      <span>Edit</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button className="fill" onClick={handleDelete}>
-                      <i>delete</i>
-                      <span>Delete</span>
-                    </button>
-                  </li>
-                </>
-              )}
-              <li>
-                <button className="fill">
-                  <i>report</i>
-                  <span>Report</span>
-                </button>
-              </li>
-              <li>
-                <button className="fill">
-                  <i>share</i>
-                  <span>Share</span>
-                </button>
-              </li>
-            </menu>
-          </nav>
-        </div>
+        {!hideMenu && (
+          <div>
+            <nav className="min active">
+              <button className="border circle">
+                <i>more_horiz</i>
+              </button>
+              <menu className="bottom transparent no-wrap left right-align">
+                {isAuthor && (
+                  <>
+                    <li>
+                      <button className="fill" onClick={handleEdit}>
+                        <i>edit</i>
+                        <span>Edit</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button className="fill" onClick={handleDelete}>
+                        <i>delete</i>
+                        <span>Delete</span>
+                      </button>
+                    </li>
+                  </>
+                )}
+                <li>
+                  <button className="fill">
+                    <i>report</i>
+                    <span>Report</span>
+                  </button>
+                </li>
+                <li>
+                  <button className="fill">
+                    <i>share</i>
+                    <span>Share</span>
+                  </button>
+                </li>
+              </menu>
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* tags */}
@@ -338,36 +342,214 @@ const PostDetails: React.FC<PostDetailsProps> = ({
         <p className="!mt-2 whitespace-pre-wrap">{post.content}</p>
       )}
 
-      {/* images - full size in detail view */}
+      {/* images */}
       {mediaWithUrls.length > 0 && (
-        <div className="!mt-4 flex flex-col gap-2">
-          {mediaWithUrls.map((media, index) => {
-            const aspectRatio = media.aspectRatio || 16 / 9;
-            // For detail view, allow images to be taller but still constrained
-            const finalAspectRatio = Math.max(aspectRatio, 9 / 16);
+        <div className="!mt-2">
+          {/* 1 image: maintain aspect ratio if within 1:3 to 3:1 range, but height not taller than 1:1 */}
+          {mediaWithUrls.length === 1 &&
+            (() => {
+              const aspectRatio = mediaWithUrls[0].aspectRatio || 1;
+              // Check if aspect ratio is within acceptable range (1:3 to 3:1)
+              // But ensure height is not taller than 1:1 (aspect ratio >= 1)
+              const isWithinRange = aspectRatio >= 1 / 3 && aspectRatio <= 3;
+              const finalAspectRatio = isWithinRange
+                ? Math.max(aspectRatio, 1)
+                : 1;
 
-            return (
+              return (
+                <div
+                  className="relative w-full"
+                  style={{ aspectRatio: finalAspectRatio.toString() }}
+                >
+                  <Image
+                    src={mediaWithUrls[0].url}
+                    alt="Post content"
+                    fill
+                    className="object-cover rounded"
+                    sizes="(max-width: 768px) 100vw, 672px"
+                  />
+                </div>
+              );
+            })()}
+
+          {/* 2 images: 2x1 grid */}
+          {mediaWithUrls.length === 2 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "inherit",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "inherit",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 3 images: 2x2 grid with 3rd taking bottom row */}
+          {mediaWithUrls.length === 3 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.slice(0, 2).map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
               <div
-                key={media.key}
-                className="relative w-full"
-                style={{ aspectRatio: finalAspectRatio.toString() }}
+                className="relative w-full col-span-2"
+                style={{ aspectRatio: "2 / 1" }}
               >
                 <Image
-                  src={media.url}
-                  alt={`Post content ${index + 1}`}
+                  src={mediaWithUrls[2].url}
+                  alt="Post content 3"
                   fill
-                  className="object-contain rounded"
+                  className="object-cover"
+                  style={{
+                    borderTopLeftRadius: "0.375rem",
+                    borderTopRightRadius: "0.375rem",
+                    borderBottomRightRadius: "inherit",
+                    borderBottomLeftRadius: "inherit",
+                  }}
                   sizes="(max-width: 768px) 100vw, 672px"
-                  priority={index === 0}
                 />
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* 4+ images: 2x2 grid with overlay on last image */}
+          {mediaWithUrls.length >= 4 && (
+            <div className="!grid !grid-cols-2 !gap-1">
+              {mediaWithUrls.slice(0, 3).map((media, index) => (
+                <div
+                  key={media.key}
+                  className="relative w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <Image
+                    src={media.url}
+                    alt={`Post content ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    style={
+                      index === 0
+                        ? {
+                            borderTopLeftRadius: "inherit",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : index === 1
+                        ? {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "inherit",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "0.375rem",
+                          }
+                        : {
+                            borderTopLeftRadius: "0.375rem",
+                            borderTopRightRadius: "0.375rem",
+                            borderBottomRightRadius: "0.375rem",
+                            borderBottomLeftRadius: "inherit",
+                          }
+                    }
+                    sizes="(max-width: 768px) 50vw, 336px"
+                  />
+                </div>
+              ))}
+              <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+                <Image
+                  src={mediaWithUrls[3].url}
+                  alt="Post content 4"
+                  fill
+                  className="object-cover"
+                  style={{
+                    borderTopLeftRadius: "0.375rem",
+                    borderTopRightRadius: "0.375rem",
+                    borderBottomRightRadius: "inherit",
+                    borderBottomLeftRadius: "0.375rem",
+                  }}
+                  sizes="(max-width: 768px) 50vw, 336px"
+                />
+                {mediaWithUrls.length > 4 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderTopLeftRadius: "0.375rem",
+                      borderTopRightRadius: "0.375rem",
+                      borderBottomRightRadius: "inherit",
+                      borderBottomLeftRadius: "0.375rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "2rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      +{mediaWithUrls.length - 4}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* upvote/downvote, comment count */}
-      <div className="flex items-start gap-2 mt-4">
+      <div className="flex items-start gap-2 !mt-4">
         <nav className="group connected primary-container">
           <button
             className={`left-round${hasUpvoted ? " active" : ""}`}
@@ -383,15 +565,15 @@ const PostDetails: React.FC<PostDetailsProps> = ({
             <i>keyboard_arrow_down</i>
           </button>
         </nav>
-        <div className="fill flex items-center gap-2">
+        <button className="fill flex items-center gap-2">
           <i style={{ color: "var(--on-primary-container)" }}>comment</i>
           <span
             className="font-bold"
             style={{ color: "var(--on-primary-container)" }}
           >
-            {commentCount} {commentCount === 1 ? "Comment" : "Comments"}
+            {commentCount}
           </span>
-        </div>
+        </button>
       </div>
     </article>
   );

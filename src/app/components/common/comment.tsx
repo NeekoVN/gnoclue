@@ -161,14 +161,15 @@ const Comment: React.FC<CommentProps> = ({
 
   return (
     <div
-      className="!py-3 border-b"
+      className="!py-3"
       style={{
-        marginLeft: depth > 0 ? `${depth * 2}rem` : "0",
+        marginLeft: depth > 0 ? `${(depth * 3)}rem` : "2rem",
+        marginRight: "2rem",
       }}
     >
-      <div className="flex items-start gap-2">
-        {/* Author avatar */}
-        <Link href={`/users/${authorId}`}>
+      <div className="flex items-start justify-between gap-2">
+        {/* Author profile */}
+        <Link href={`/users/${authorId}`} className="flex items-center gap-2">
           <Avatar
             user={
               typeof comment.userId === "object" && comment.userId !== null
@@ -179,107 +180,103 @@ const Comment: React.FC<CommentProps> = ({
             size="32px"
             backgroundColor={avatarColor}
           />
+          <div className="flex flex-col items-start justify-center">
+            <p className="!p-0 !m-0 text-sm font-bold">{username}</p>
+            <p className="!p-0 !m-0 text-xs text-gray-500">
+              {formatTimestamp(comment.createdAt)}
+            </p>
+          </div>
         </Link>
 
-        <div className="flex-1">
-          {/* Author info and timestamp */}
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-2">
-              <Link href={`/users/${authorId}`}>
-                <span className="text-sm font-bold">{username}</span>
-              </Link>
-              <span className="text-xs text-gray-500">
-                {formatTimestamp(comment.createdAt)}
-              </span>
-            </div>
-
-            {/* Comment actions menu */}
-            <nav className="min active">
-              <button className="border circle small">
-                <i>more_horiz</i>
-              </button>
-              <menu className="bottom transparent no-wrap left right-align">
-                {isAuthor && (
-                  <>
-                    <li>
-                      <button className="fill" onClick={handleEdit}>
-                        <i>edit</i>
-                        <span>Edit</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button className="fill" onClick={handleDelete}>
-                        <i>delete</i>
-                        <span>Delete</span>
-                      </button>
-                    </li>
-                  </>
-                )}
-                <li>
-                  <button className="fill">
-                    <i>report</i>
-                    <span>Report</span>
-                  </button>
-                </li>
-              </menu>
-            </nav>
-          </div>
-
-          {/* Comment content */}
-          {isEditing ? (
-            <div className="mt-2">
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-2 border rounded resize-none"
-                rows={2}
-              />
-              <div className="flex gap-2 mt-2">
-                <button className="button small" onClick={handleSaveEdit}>
-                  Save
+        {/* Comment actions menu */}
+        <div>
+          <nav className="min active">
+            <button className="border circle small">
+              <i>more_horiz</i>
+            </button>
+            <menu className="bottom transparent no-wrap left right-align">
+              {isAuthor && (
+                <>
+                  <li>
+                    <button className="fill" onClick={handleEdit}>
+                      <i>edit</i>
+                      <span>Edit</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button className="fill" onClick={handleDelete}>
+                      <i>delete</i>
+                      <span>Delete</span>
+                    </button>
+                  </li>
+                </>
+              )}
+              <li>
+                <button className="fill">
+                  <i>report</i>
+                  <span>Report</span>
                 </button>
-                <button className="button small" onClick={handleCancelEdit}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-          )}
-
-          {/* Voting and reply buttons */}
-          <div className="flex items-center gap-2 mt-2">
-            <nav className="group connected primary-container">
-              <button
-                className={`left-round small${hasUpvoted ? " active" : ""}`}
-                onClick={handleUpvote}
-              >
-                <i>keyboard_arrow_up</i>
-                <span className="text-xs font-bold">{voteCount}</span>
-              </button>
-              <button
-                className={`right-round square small${
-                  hasDownvoted ? " active" : ""
-                }`}
-                onClick={handleDownvote}
-              >
-                <i>keyboard_arrow_down</i>
-              </button>
-            </nav>
-
-            {onReply && (
-              <button
-                className="small fill"
-                onClick={() => onReply(comment._id)}
-              >
-                <i style={{ color: "var(--on-primary-container)" }}>reply</i>
-                <span style={{ color: "var(--on-primary-container)" }}>
-                  Reply
-                </span>
-              </button>
-            )}
-          </div>
+              </li>
+            </menu>
+          </nav>
         </div>
+      </div>
+
+      {/* Comment content */}
+      <div className="!mt-2" style={{ maxWidth: '600px' }}>
+        {isEditing ? (
+          <div>
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full p-2 border rounded resize-none"
+              rows={2}
+            />
+            <div className="flex gap-2 mt-2">
+              <button className="button small" onClick={handleSaveEdit}>
+                Save
+              </button>
+              <button className="button small" onClick={handleCancelEdit}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+        )}
+      </div>
+
+      {/* Voting and reply buttons */}
+      <div className="flex items-start gap-2 mt-2">
+        <nav className="group connected primary-container">
+          <button
+            className={`left-round small${hasUpvoted ? " active" : ""}`}
+            onClick={handleUpvote}
+          >
+            <i>keyboard_arrow_up</i>
+            <span className="text-xs font-bold">{voteCount}</span>
+          </button>
+          <button
+            className={`right-round square small${
+              hasDownvoted ? " active" : ""
+            }`}
+            onClick={handleDownvote}
+          >
+            <i>keyboard_arrow_down</i>
+          </button>
+        </nav>
+
+        {onReply && (
+          <button
+            className="small fill"
+            onClick={() => onReply(comment._id)}
+          >
+            <i style={{ color: "var(--on-primary-container)" }}>reply</i>
+            <span style={{ color: "var(--on-primary-container)" }}>
+              Reply
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

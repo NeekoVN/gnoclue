@@ -221,11 +221,10 @@ export default function PostDetailsPage() {
   }
 
   return (
-    <aside className="flex !h-full">
+    <aside className="flex !h-full" style={{ background: "var(--background)" }}>
       <div
         className="flex flex-col h-full border overflow-hidden"
         style={{
-          background: "var(--surface-container-lowest)",
           boxSizing: "border-box",
           borderRadius: "0.75rem",
           width: "100%",
@@ -233,59 +232,110 @@ export default function PostDetailsPage() {
           minWidth: "0",
         }}
       >
-        {/* Header with back button */}
-        <div className="flex items-center gap-2 p-4 border-b">
+        {/* Header with back button and menu */}
+        <div className="flex items-center justify-between gap-2 !p-2 !m-2" style={{ background: "var(--surface-variant)" }}>
           <button
-            className="button circle"
+            className="button circle !m-0"
             onClick={() => router.back()}
             disabled={!canGoBack}
             title={canGoBack ? "Go back" : "No history to go back"}
           >
             <i>arrow_back</i>
           </button>
-          <h1 className="text-xl font-bold">Post</h1>
+          
+          {/* Post actions menu */}
+          <nav className="min active !m-0">
+            <button className="border circle">
+              <i>more_horiz</i>
+            </button>
+            <menu className="bottom transparent no-wrap left right-align">
+              {post.userId && (typeof post.userId === "string" ? post.userId : post.userId._id) === user?._id && (
+                <>
+                  <li>
+                    <button className="fill" onClick={() => {
+                      const editContent = prompt("Edit post:", post.content);
+                      if (editContent !== null && editContent.trim()) {
+                        handlePostUpdate({ ...post, content: editContent });
+                      }
+                    }}>
+                      <i>edit</i>
+                      <span>Edit</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button className="fill" onClick={handlePostDelete}>
+                      <i>delete</i>
+                      <span>Delete</span>
+                    </button>
+                  </li>
+                </>
+              )}
+              <li>
+                <button className="fill">
+                  <i>report</i>
+                  <span>Report</span>
+                </button>
+              </li>
+              <li>
+                <button className="fill">
+                  <i>share</i>
+                  <span>Share</span>
+                </button>
+              </li>
+            </menu>
+          </nav>
         </div>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Post details */}
-          <PostDetails
-            post={post}
-            onPostUpdate={handlePostUpdate}
-            onPostDelete={handlePostDelete}
-            currentUserId={user?._id}
-          />
+          {/* Post details - no border, no background, no rounded corners */}
+          <div>
+            <PostDetails
+              post={post}
+              onPostUpdate={handlePostUpdate}
+              onPostDelete={handlePostDelete}
+              currentUserId={user?._id}
+              hideMenu={true}
+            />
+          </div>
 
           {/* Comment input */}
           <div className="mt-6">
-            <form onSubmit={handleSubmitComment}>
-              <div className="field border">
+            <form onSubmit={handleSubmitComment} className="flex items-center gap-2 !mx-3">
+              <div className="field textarea round fill min flex-1 !m-0">
                 <textarea
                   value={commentContent}
+                  style={{
+                    boxShadow: "none",
+                    backgroundColor: "var(--surface-variant)",
+                  }}
                   onChange={(e) => setCommentContent(e.target.value)}
                   placeholder="Write a comment..."
-                  className="w-full resize-none"
-                  rows={3}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmitComment(e);
+                    }
+                  }}
                 />
               </div>
-              <div className="flex justify-end mt-2">
-                <button
-                  type="submit"
-                  className="button"
-                  disabled={!commentContent.trim() || submitting}
-                >
-                  {submitting ? "Posting..." : "Post Comment"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="tertiary flex-shrink-0 !mx-0"
+                disabled={!commentContent.trim() || submitting}
+                style={{
+                  opacity: submitting || !commentContent.trim() ? 0.6 : 1,
+                  cursor: submitting || !commentContent.trim() ? "not-allowed" : "pointer",
+                  height: "48px",
+                }}
+              >
+                <i className="fill">{submitting ? "schedule" : "send"}</i>
+              </button>
             </form>
           </div>
 
           {/* Comments section */}
-          <div className="mt-6">
-            <h2 className="text-lg font-bold mb-4">
-              Comments ({post.commentCount || 0})
-            </h2>
-
+          <div className="!mt-4">
             {topLevelComments.length === 0 ? (
               <p className="text-gray-500 text-center py-8">
                 No comments yet. Be the first to comment!
@@ -311,36 +361,56 @@ export default function PostDetailsPage() {
                         <div className="ml-12 mt-2 mb-4">
                           <form
                             onSubmit={(e) => handleSubmitReply(e, comment._id)}
+                            className="flex items-center gap-2 !mx-3"
                           >
-                            <div className="field border">
+                            <div className="field textarea round fill min flex-1 !m-0">
                               <textarea
                                 value={replyContent}
                                 onChange={(e) => setReplyContent(e.target.value)}
                                 placeholder="Write a reply..."
-                                className="w-full resize-none"
-                                rows={2}
                                 autoFocus
+                                style={{
+                                  boxShadow: "none",
+                                  backgroundColor: "var(--surface-variant)",
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSubmitReply(e, comment._id);
+                                  } else if (e.key === "Escape") {
+                                    setReplyingTo(null);
+                                    setReplyContent("");
+                                  }
+                                }}
                               />
                             </div>
-                            <div className="flex gap-2 mt-2">
-                              <button
-                                type="submit"
-                                className="button small"
-                                disabled={!replyContent.trim() || submitting}
-                              >
-                                {submitting ? "Posting..." : "Post Reply"}
-                              </button>
-                              <button
-                                type="button"
-                                className="button small"
-                                onClick={() => {
-                                  setReplyingTo(null);
-                                  setReplyContent("");
-                                }}
-                              >
-                                Cancel
-                              </button>
-                            </div>
+                            <button
+                              type="submit"
+                              className="tertiary flex-shrink-0 !mx-0"
+                              disabled={!replyContent.trim() || submitting}
+                              style={{
+                                opacity: submitting || !replyContent.trim() ? 0.6 : 1,
+                                cursor: submitting || !replyContent.trim() ? "not-allowed" : "pointer",
+                                height: "48px",
+                              }}
+                            >
+                              <i className="fill">{submitting ? "schedule" : "send"}</i>
+                            </button>
+                            <button
+                              type="button"
+                              className="flex-shrink-0 !mx-0"
+                              onClick={() => {
+                                setReplyingTo(null);
+                                setReplyContent("");
+                              }}
+                              style={{
+                                height: "48px",
+                                backgroundColor: "var(--error-container)",
+                                color: "var(--on-error-container)",
+                              }}
+                            >
+                              <i className="fill">close</i>
+                            </button>
                           </form>
                         </div>
                       )}
