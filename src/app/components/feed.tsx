@@ -6,6 +6,7 @@ import Post from "./common/post";
 import { IPost } from "../types/post";
 import { getPosts } from "../services/post";
 import { useAuth } from "../contexts/AuthContext";
+import { usePersona } from "../contexts/PersonaContext";
 import { useVoteUpdates } from "../hooks/useVoteUpdates";
 
 const Feed: React.FC = () => {
@@ -21,6 +22,7 @@ const Feed: React.FC = () => {
     total_candidates?: number;
   }>({});
   const { token, user } = useAuth();
+  const { activePersona } = usePersona();
   const feedRef = React.useRef<HTMLDivElement>(null);
 
   // Handle real-time vote updates
@@ -155,7 +157,7 @@ const Feed: React.FC = () => {
         }
         setError(null);
 
-        const response = await getPosts(pageNum, 10);
+        const response = await getPosts(pageNum, 10, true, activePersona?._id);
 
         // Update feed metadata for personalization indicators
         setFeedMetadata({
@@ -195,7 +197,7 @@ const Feed: React.FC = () => {
         setLoadingMore(false);
       }
     },
-    []
+    [activePersona]
   );
 
   // Manual refresh function for testing
@@ -207,6 +209,14 @@ const Feed: React.FC = () => {
   useEffect(() => {
     fetchPosts();
   }, [token, fetchPosts]);
+
+  // Refetch posts when active persona changes
+  useEffect(() => {
+    if (activePersona) {
+      console.log("Active persona changed, refetching posts with persona:", activePersona._id);
+      fetchPosts(1, false);
+    }
+  }, [activePersona?._id, fetchPosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleScroll = () => {

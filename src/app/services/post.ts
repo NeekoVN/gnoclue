@@ -81,7 +81,11 @@ export const getAllPosts = async (page: number = 1, limit: number = 10): Promise
 };
 
 // Get personalized recommendation feed (NEW: Uses ML recommendations)
-export const getPersonalizedFeed = async (page: number = 1, limit: number = 10): Promise<IPostsResponse> => {
+export const getPersonalizedFeed = async (
+  page: number = 1, 
+  limit: number = 10,
+  personaId?: string
+): Promise<IPostsResponse> => {
   const token = getAuthToken();
   const axiosInstance = axios.create({
     baseURL: RECOMMENDATIONS_URL,
@@ -104,15 +108,31 @@ export const getPersonalizedFeed = async (page: number = 1, limit: number = 10):
     }
   );
 
-  const response = await axiosInstance.get<IPostsResponse>(`/feed?page=${page}&limit=${limit}`);
+  // Build query parameters
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  
+  // Add persona_id if provided
+  if (personaId) {
+    params.append('persona_id', personaId);
+  }
+
+  const response = await axiosInstance.get<IPostsResponse>(`/feed?${params.toString()}`);
   return response.data;
 };
 
 // Main posts function - now uses personalized recommendations by default
-export const getPosts = async (page: number = 1, limit: number = 10, usePersonalized: boolean = true): Promise<IPostsResponse> => {
+export const getPosts = async (
+  page: number = 1, 
+  limit: number = 10, 
+  usePersonalized: boolean = true,
+  personaId?: string
+): Promise<IPostsResponse> => {
   if (usePersonalized) {
     try {
-      return await getPersonalizedFeed(page, limit);
+      return await getPersonalizedFeed(page, limit, personaId);
     } catch (error) {
       console.warn('Failed to get personalized feed, falling back to all posts:', error);
       return await getAllPosts(page, limit);

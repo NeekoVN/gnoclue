@@ -175,15 +175,18 @@ export const PersonaProvider = ({ children }: { children: React.ReactNode }) => 
       await personaService.activatePersona(personaId);
       
       // Update local state: mark this as active, others as inactive
-      setUserPersonas((prev) =>
-        prev.map((p) => ({
+      setUserPersonas((prev) => {
+        const updated = prev.map((p) => ({
           ...p,
           is_active: p._id === personaId,
-        }))
-      );
-      
-      const newActive = userPersonas.find((p) => p._id === personaId);
-      setActivePersona(newActive || null);
+        }));
+        
+        // Find and set the new active persona from updated state
+        const newActive = updated.find((p) => p._id === personaId);
+        setActivePersona(newActive || null);
+        
+        return updated;
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to activate persona";
       setError(errorMessage);
@@ -191,7 +194,7 @@ export const PersonaProvider = ({ children }: { children: React.ReactNode }) => 
     } finally {
       setLoading(false);
     }
-  }, [userPersonas]);
+  }, []);
 
   // Fork persona
   const forkPersona = useCallback(async (personaId: string): Promise<Persona> => {
