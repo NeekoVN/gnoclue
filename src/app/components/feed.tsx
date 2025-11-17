@@ -315,9 +315,9 @@ const Feed: React.FC = () => {
           <>
             {/* Personalization indicator */}
             {feedMetadata.isPersonalized && posts.length > 0 && (
-              <div className="flex items-center justify-center mb-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm rounded-lg shadow-sm">
+              <div className="flex items-center justify-center mb-4 px-4 py-2 text-white text-sm rounded-lg">
                 <span className="mr-2">✨</span>
-                Personalized for you
+                Personalized feed
                 {feedMetadata.processing_time_ms && (
                   <span className="ml-2 text-xs opacity-80">
                     ({feedMetadata.processing_time_ms}ms)

@@ -82,20 +82,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch {}
     setToken(data.token);
 
-    // Set user data from login response
-    setUser({
-      _id: data._id,
-      username: data.username,
-      email: data.email,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-
     // Initialize SimpleE2E client after login
     try {
       const client = SimpleE2EClient.getInstance();
       client.setUserId(data._id);
     } catch {}
+
+    // Fetch full user data including avatar
+    try {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error("Failed to fetch user data after login:", error);
+      // Fallback to minimal user data from login response
+      setUser({
+        _id: data._id,
+        username: data.username,
+        email: data.email,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
 
     // No longer set cookie for middleware
     // document.cookie = `auth_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
