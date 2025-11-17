@@ -15,18 +15,18 @@ const BottomNavbar: React.FC = () => {
             <i>home</i>
             <span>Home</span>
           </Link>
-          <a>
-            <i>notifications</i>
-            <span>Alerts</span>
-          </a>
-          <a>
+          <Link
+            href="/saved"
+            className={pathname === "/saved" ? "active" : ""}>
             <i>bookmark</i>
             <span>Saved</span>
-          </a>
-          <a>
+          </Link>
+          <Link
+            href="/feeds"
+            className={pathname === "/feeds" ? "active" : ""}>
             <i>folder</i>
             <span>Feeds</span>
-          </a>
+          </Link>
           <Link
             href="/messages"
             className={pathname === "/messages" ? "active" : ""}>

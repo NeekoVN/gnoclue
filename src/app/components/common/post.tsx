@@ -10,6 +10,7 @@ import {
   updatePost,
   getMediaUrl,
 } from "../../services/post";
+import { toggleSavePost } from "../../services/saved";
 import { calculatePostVoteCount } from "../../utils/voteCalculator";
 import { createOptimisticVoteUpdate } from "../../utils/optimisticVote";
 import { useSocket } from "../../contexts/SocketContext";
@@ -44,6 +45,8 @@ const Post: React.FC<PostProps> = ({
   const [editContent, setEditContent] = useState(post.content);
   const [mediaWithUrls, setMediaWithUrls] = useState<MediaWithDimensions[]>([]);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingPost, setSavingPost] = useState(false);
   const { socket } = useSocket();
   const router = useRouter();
 
@@ -97,6 +100,24 @@ const Post: React.FC<PostProps> = ({
 
     fetchMediaUrls();
   }, [post.media]);
+
+  // Check if post is saved on mount
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      if (!currentUserId) return;
+      
+      try {
+        const { checkIfSaved } = await import("../../services/saved");
+        const result = await checkIfSaved(post._id);
+        setIsSaved(result.isSaved);
+      } catch (error) {
+        console.error("Failed to check saved status:", error);
+      }
+    };
+
+    checkSavedStatus();
+  }, [post._id, currentUserId]);
+
   const handleUpvote = async () => {
     if (!currentUserId) return;
 
@@ -197,6 +218,20 @@ const Post: React.FC<PostProps> = ({
   const handleCancelEdit = () => {
     setEditContent(post.content);
     setIsEditing(false);
+  };
+
+  const handleSavePost = async () => {
+    if (!currentUserId || savingPost) return;
+
+    setSavingPost(true);
+    try {
+      const result = await toggleSavePost(post._id);
+      setIsSaved(result.isSaved);
+    } catch (error) {
+      console.error("Failed to toggle save post:", error);
+    } finally {
+      setSavingPost(false);
+    }
   };
 
   const isAuthor =
@@ -599,6 +634,22 @@ const Post: React.FC<PostProps> = ({
             style={{ color: "var(--on-primary-container)" }}
           >
             {commentCount}
+          </span>
+        </button>
+        <button
+          className={isSaved ? "!m-0" : "!m-0 fill"}
+          onClick={handleSavePost}
+          disabled={savingPost || !currentUserId}
+          title={isSaved ? "Unsave post" : "Save post"}
+        >
+          <i style={{ color: isSaved ? "inherit" : "var(--on-primary-container)" }}>
+            {isSaved ? "bookmark" : "bookmark_border"}
+          </i>
+          <span
+            className=""
+            style={{ color: isSaved ? "inherit" : "var(--on-primary-container)" }}
+          >
+            {isSaved ? "Saved" : "Save"}
           </span>
         </button>
         {/* <button className="fill">

@@ -12,6 +12,7 @@ import SocketStatus from "./components/common/socketStatus";
 import { usePathname } from "next/navigation";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SocketProvider } from "./contexts/SocketContext";
+import { PersonaProvider } from "./contexts/PersonaContext";
 import AuthGuard from "./components/AuthGuard";
 import MessagePanel from "./components/messages/MessagePanel";
 
@@ -54,7 +55,8 @@ export default function RootLayout({
       >
         <AuthProvider>
           <SocketProvider>
-            <AuthGuard>
+            <PersonaProvider>
+              <AuthGuard>
               <div className="!flex h-dvh !w-full">
                 {!asAuthPage && <NavigationRail />}
                 <div className="!flex !flex-col !flex-1 !min-w-0">
@@ -89,6 +91,7 @@ export default function RootLayout({
               </div>
               {false && <SocketStatus />}
             </AuthGuard>
+            </PersonaProvider>
           </SocketProvider>
         </AuthProvider>
       </body>
