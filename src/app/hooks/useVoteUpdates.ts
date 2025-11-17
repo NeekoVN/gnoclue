@@ -120,7 +120,7 @@ export const useVoteUpdates = ({ onVoteUpdate, onVoteError }: UseVoteUpdatesProp
     // Listen for post updates (in case the backend sends general post updates)
     socket.on("post_updated", handleVoteUpdate);
 
-    // Listen for any custom vote events your backend might be sending
+    // Listen for any custom vote event backend might be sending
     socket.on("vote_cast", handleVoteUpdate);
 
     // Listen for general post updates

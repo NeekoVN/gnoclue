@@ -1,16 +1,16 @@
 // src/types/user.ts
 
 // This interface defines the shape of a User object as it would be exposed
-// by your API, for example, when fetching a user's profile or when a user
+// by API, for example, when fetching a user's profile or when a user
 // field is populated on another document like a Post.
 // It explicitly omits sensitive fields like 'password'.
 export interface IUser {
     _id: string; // MongoDB ObjectId is always returned as a string in JSON
     username: string;
-    email: string; // If your API allows exposing email in profile or public views
+    email: string; // If API allows exposing email in profile or public views
     avatar?: string; // URL to user's avatar image in S3 bucket
     role?: 'user' | 'admin'; // User role (admin has special privileges)
-    // Add other non-sensitive fields that your API might return for a user
+    // Add other non-sensitive fields that API might return for a user
     following?: string[]; // Array of User IDs (strings)
     followers?: string[]; // Array of User IDs (strings)
     isDeleted?: boolean; // Soft delete flag
