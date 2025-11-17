@@ -67,7 +67,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({
             <div className="!flex-1 !flex !items-center !gap-2">
               <h6 className="!m-0 !font-bold">{persona.display_name}</h6>
               {persona.parent_persona_id && (
-                <i className="opacity-60" title="Forked persona">fork_right</i>
+                <i className="opacity-60" title="Forked feed">fork_right</i>
               )}
             </div>
           <button className="chip round small">

@@ -59,7 +59,7 @@ const PersonaFormModal: React.FC<PersonaFormModalProps> = ({
     setError(null);
 
     if (!formData.display_name.trim()) {
-      setError("Persona name is required");
+      setError("Feed name is required");
       return;
     }
 
@@ -68,7 +68,7 @@ const PersonaFormModal: React.FC<PersonaFormModalProps> = ({
       await onSubmit(formData);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save persona");
+      setError(err instanceof Error ? err.message : "Failed to save feed");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ const PersonaFormModal: React.FC<PersonaFormModalProps> = ({
               placeholder=" "
               required
             />
-          <label>Persona Name</label>
+          <label>Feed Name</label>
         </div>
 
         {/* Description */}
@@ -146,7 +146,7 @@ const PersonaFormModal: React.FC<PersonaFormModalProps> = ({
             <span>Enable Learning</span>
           </label>
           <div className="!text-sm opacity-60">
-            Allow this persona to learn from your interactions
+            Allow this feed to learn from your interactions
           </div>
         </div>
 
@@ -159,7 +159,7 @@ const PersonaFormModal: React.FC<PersonaFormModalProps> = ({
             {loading ? (
               <progress className="circle small"></progress>
             ) : (
-              <span>{persona ? "Save Changes" : "Create Persona"}</span>
+              <span>{persona ? "Save Changes" : "Create Feed"}</span>
             )}
           </button>
         </nav>

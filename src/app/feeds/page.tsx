@@ -72,7 +72,7 @@ export default function FeedsPage() {
       await activatePersona(personaId);
       await loadUserPersonas();
       setDialogType("success");
-      setDialogMessage("Persona activated successfully!");
+      setDialogMessage("Feed activated successfully!");
       ui("#feedsDialog");
     } catch (error) {
       console.error("Failed to activate persona:", error);
@@ -86,14 +86,14 @@ export default function FeedsPage() {
     try {
       await forkPersona(personaId);
       setDialogType("success");
-      setDialogMessage("Persona forked successfully! Check 'My Feeds' tab.");
+      setDialogMessage("Feed forked successfully! Check 'My Feeds' tab.");
       ui("#feedsDialog");
       // Switch to My Feeds tab to show the forked persona
       setActiveTab("my");
     } catch (error) {
       console.error("Failed to fork persona:", error);
       setDialogType("error");
-      setDialogMessage("Failed to fork persona");
+      setDialogMessage("Failed to fork feed");
       ui("#feedsDialog");
     }
   };
@@ -131,7 +131,7 @@ export default function FeedsPage() {
       await deletePersona(personaToDelete);
       await loadUserPersonas();
       setDialogType("success");
-      setDialogMessage("Persona deleted successfully!");
+      setDialogMessage("Feed deleted successfully!");
       ui("#feedsDialog");
     } catch (error) {
       console.error("Failed to delete persona:", error);
@@ -139,7 +139,7 @@ export default function FeedsPage() {
       // Show specific error message from API
       const errorMessage = (error as {response?: {data?: {detail?: string; message?: string}}})?.response?.data?.detail 
         || (error as {response?: {data?: {detail?: string; message?: string}}})?.response?.data?.message 
-        || "Failed to delete persona";
+        || "Failed to delete feed";
       setDialogMessage(errorMessage);
       ui("#feedsDialog");
     } finally {
@@ -262,7 +262,7 @@ export default function FeedsPage() {
                       </button>
                       <button 
                         className="circle fill" 
-                        title="Create new persona"
+                        title="Create new feed"
                         onClick={handleCreateNew}
                       >
                         <i>add</i>
@@ -283,7 +283,7 @@ export default function FeedsPage() {
               ) : publicPersonas.length === 0 ? (
                 <div className="!text-center !py-8 opacity-60">
                   <i style={{ fontSize: "3rem" }}>public_off</i>
-                  <p>No public personas available</p>
+                  <p>No public feeds available</p>
                 </div>
               ) : (
                 <div className="!flex !flex-col !gap-4">
@@ -314,10 +314,10 @@ export default function FeedsPage() {
               ) : userPersonas.length === 0 ? (
                 <div className="!text-center !py-8 opacity-60">
                   <i style={{ fontSize: "3rem" }}>folder_off</i>
-                  <p>You don&apos;t have any personas yet</p>
+                  <p>You don&apos;t have any feeds yet</p>
                   <button className="fill">
                     <i>add</i>
-                    <span>Create your first persona</span>
+                    <span>Create your first feed</span>
                   </button>
                 </div>
               ) : (
@@ -355,7 +355,7 @@ export default function FeedsPage() {
         }}
         onSubmit={handleModalSubmit}
         persona={editingPersona}
-        title={editingPersona ? "Edit Persona" : "Create New Persona"}
+        title={editingPersona ? "Edit Feed" : "Create New Feed"}
       />
 
       {/* Notification Dialog */}
@@ -373,7 +373,7 @@ export default function FeedsPage() {
       {/* Delete Confirmation Dialog */}
       <dialog id="deleteConfirmDialog">
         <h5>Confirm Delete</h5>
-        <div>Are you sure you want to delete this persona? This action cannot be undone.</div>
+        <div>Are you sure you want to delete this feed? This action cannot be undone.</div>
         <nav className="right-align no-space">
           <button className="transparent link" data-ui="#deleteConfirmDialog">
             Cancel
