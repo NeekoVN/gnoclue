@@ -121,14 +121,25 @@ const MessagesList: React.FC<MessagesListProps> = ({
           .filter((m) => m.plaintext !== "__ack__")
           .map((message, index) => {
             const isOwnMessage = message.senderId === currentUserId;
-            const messageTime = new Date(message.createdAt).toLocaleTimeString(
-              "en-US",
-              {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              }
-            );
+            const messageDate = new Date(message.createdAt);
+            const now = new Date();
+            const isSameDay =
+              messageDate.toDateString() === now.toDateString();
+            const isSameYear =
+              messageDate.getFullYear() === now.getFullYear();
+
+            // Show time for today, day/month for same year, include year otherwise
+            const messageTime = isSameDay
+              ? messageDate.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : messageDate.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  ...(isSameYear ? {} : { year: "2-digit" }),
+                });
 
             // Get surrounding messages for contextual rounding
             const filteredMessages = messages.filter(
