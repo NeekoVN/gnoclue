@@ -298,7 +298,6 @@ const MessagePanel: React.FC<MessagePanelProps> = ({ className }) => {
     user?._id,
   ]);
 
-  // Auto session init on conversation activation is disabled to avoid consuming OTKs prematurely.
   useEffect(() => {
     return;
   }, [activeId, getOtherParticipantId]);
